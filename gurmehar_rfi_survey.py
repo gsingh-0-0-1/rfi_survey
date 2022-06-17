@@ -48,6 +48,10 @@ def main():
     os.mkdir("./obs/" + THIS_SCAN_TIME)
     os.mkdir("./obs/" + THIS_SCAN_TIME + "/ephems/")
 
+    ls = open("./obs/lastscan.txt", "w")
+    ls.write(THIS_SCAN_TIME)
+    ls.close()
+
     logger = logger_defaults.getProgramLogger("observe", loglevel=logging.INFO)
 
     #full frequency list of the RFI survey, in MHz
