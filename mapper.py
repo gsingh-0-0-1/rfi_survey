@@ -15,6 +15,8 @@ MJD_UNIX_DAYS = 40587
 SCAN = sys.argv[1]
 #f.close()
 
+SCAN = SCAN.replace("\\", "")
+
 obsdatadir = '/mnt/buf0/obs/'
 
 obsdir = "./obs/" + SCAN + "/"
@@ -32,10 +34,10 @@ antlist = [el for el in obsinfo if el != '' and el != '\n']
 
 data = {}
 
-split = 1
+split = 64
 
 bw = open(obsdir + "df_bw.txt", "w")
-bw.write(str(672 / split))
+bw.write(str(1024 / split))
 bw.close()
 
 for matchpair in matchdata:
@@ -83,7 +85,7 @@ for matchpair in matchdata:
         #this corresponds to the indices:
         b_low = 704
         b_high = 3392
-        block = block[b_low:b_high]
+        #block = block[b_low:b_high]
 
         NCHANS = block.shape[0]
         #redefine FCH1

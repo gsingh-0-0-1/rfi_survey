@@ -7,6 +7,8 @@ import sys
 SCAN = sys.argv[1]
 #f.close()
 
+SCAN = SCAN.replace("\\", "")
+
 scandir = "./obs/" + SCAN + "/"
 
 #infofile = open(scandir + "obsinfo.txt")
