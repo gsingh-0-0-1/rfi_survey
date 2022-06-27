@@ -11,7 +11,9 @@ ax = Axes3D(fig)
 
 MJD_UNIX_DAYS = 40587
 
+#f = open("./obs/lastscan.txt")
 SCAN = sys.argv[1]
+#f.close()
 
 obsdatadir = '/mnt/buf0/obs/'
 
@@ -30,7 +32,7 @@ antlist = [el for el in obsinfo if el != '' and el != '\n']
 
 data = {}
 
-split = 16
+split = 1
 
 bw = open(obsdir + "df_bw.txt", "w")
 bw.write(str(672 / split))
@@ -61,11 +63,20 @@ for matchpair in matchdata:
         #the ephemeris time is going to be after the "official" start time
         #this delay is in seconds
         time_delay = ephemdata[0][0] / (10 ** 9) - MOD_UNIX_START
+        
+        tsamp = header.tsamp
 
-
-        sample_delay = round(time_delay / header.tsamp)
+        sample_delay = round(time_delay / tsamp)
 
         block = filfile.read_block(sample_delay, NSAMPS - sample_delay)
+
+        ELEVS = np.unique(ephemdata[:, 2])
+        elev_samples = {}
+        for elev in ELEVS:
+            this_ephem = ephemdata[np.where(ephemdata[:, 2] == elev)]
+            start_sample = round(((this_ephem[0][0] - ephemdata[0][0]) / (10 ** 9)) / tsamp)
+            end_sample = round(((this_ephem[-1][0] - ephemdata[0][0]) / (10 ** 9)) / tsamp)
+            elev_samples[elev] = [start_sample, end_sample]
 
         #we can only really use the center 672 MHz
         #in a file where we have 4096 channels of 0.25 MHz width,
@@ -82,7 +93,6 @@ for matchpair in matchdata:
             start = spl * NCHANS / split
             end = start + NCHANS / split
 
-            print(start, end)
 
             start = int(start)
             end = int(end)
@@ -92,11 +102,16 @@ for matchpair in matchdata:
             FCENTER = FCH1 - (0.25 * (start + end) / 2)
             #print(FCH1, FCENTER, FCH1 - FCENTER)
             #print()
-            ELEV = ephemdata[0][2]
-            START_AZ = round(ephemdata[0][1])
-            if START_AZ == 360:
-                ts = ts[::-1]
+            for ELEV in elev_samples.keys():
+                START_AZ = round(ephemdata[np.where(ephemdata[:, 2] == ELEV)][0][1])
+                
+                this_ts = ts[elev_samples[ELEV][0]:elev_samples[ELEV][1]]
 
-            np.savetxt(obsdir + "datafile_FCEN_" + str(FCENTER) + "_EL_" + str(ELEV) + ".txt", ts)
+                if START_AZ == 360:
+                    this_ts = this_ts[::-1]
+
+                print(elev_samples[ELEV])
+
+                np.savetxt(obsdir + "datafile_FCEN_" + str(FCENTER) + "_EL_" + str(ELEV) + ".txt", this_ts)
 
 

@@ -3,7 +3,9 @@ import matplotlib.pyplot as plt
 import os
 import sys
 
+#f = open("./obs/lastscan.txt")
 SCAN = sys.argv[1]
+#f.close()
 
 scandir = "./obs/" + SCAN + "/"
 

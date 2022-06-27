@@ -4,7 +4,7 @@ import glob
 
 OBSDIR = "/mnt/buf0/obs/"
 
-SCAN = sys.argv[1]
+SCAN = sys.argv[1]#f.read()
 
 ephems = os.listdir("./obs/" + SCAN + "/ephems/")
 
