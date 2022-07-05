@@ -1,13 +1,23 @@
 import numpy as np
 from sigpyproc.readers import FilReader
 import sys
-import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import os
 import pandas as pd
+import scipy.signal
+import sqlite3
 
-fig = plt.figure()
-ax = Axes3D(fig)
+def downsample(l, f):
+    if f == 1:
+        return l
+
+    arrs = [l[i::f] for i in range(f)]
+    target = max([el.shape[0] for el in arrs])
+    updated = [np.concatenate((el, np.full(target - el.shape[0], [el[-1]]))) for el in arrs]
+    ds = sum(updated) / f
+    return ds
+
+DOWNSAMPLE_FACTOR = 4
 
 MJD_UNIX_DAYS = 40587
 
@@ -20,30 +30,29 @@ SCAN = SCAN.replace("\\", "")
 obsdatadir = '/mnt/buf0/obs/'
 
 obsdir = "./obs/" + SCAN + "/"
+ephemdir = obsdir + "ephems/"
 
-matchfile = open(obsdir + "/ephems/matches.txt")
-matchdata = matchfile.read().split("\n")
-matchfile.close()
-
-matchdata = [el.split(",") for el in matchdata if el != '']
-
-ofile = open(obsdir + "/obsinfo.txt")
-obsinfo = ofile.read().split(",")
-ofile.close()
-antlist = [el for el in obsinfo if el != '' and el != '\n']
+antlo_list = os.listdir(ephemdir)
 
 data = {}
 
 split = 64
 
 bw = open(obsdir + "df_bw.txt", "w")
-bw.write(str(1024 / split))
+bw.write(str(672 / split))
 bw.close()
 
-for matchpair in matchdata:
-    ephemdata = np.loadtxt(obsdir + "/ephems/" + matchpair[0], dtype = float)
+for ant in antlo_list:
+    matchfile = open(ephemdir + ant + "/matches.txt")
+    matchdata = [el.split(",") for el in matchfile.read().split("\n") if el != ""]
+    matchfile.close()
 
-    for ant in antlist:
+    #print(matchdata)
+    #continue
+
+    for matchpair in matchdata:
+        ephemdata = np.loadtxt(obsdir + "/ephems/" + ant + "/" + matchpair[0], dtype = float)
+        
         this_ant_dir = obsdir + "/" + ant + "/"
         this_ant_data_dir = matchpair[1] + "/" + ant + "/"
         
@@ -56,6 +65,17 @@ for matchpair in matchdata:
         NSAMPS = header.nsamples_files[0]
         MJDSTART = header.tstart_files[0]
         FCH1 = header.fch1
+        CFREQ = FCH1 - 512
+
+        f = open(obsdir + "cfreq.txt", "w")
+        f.write(str(CFREQ))
+        f.close()
+
+        db = sqlite3.connect("obsdata.db")
+        cur = db.cursor()
+        cur.execute(" INSERT INTO obsdata VALUES ('" + SCAN + "', " + str(CFREQ) + ") ")
+        db.commit()
+        db.close()
 
         if FCH1 not in data:
             data[FCH1] = {}
@@ -85,10 +105,11 @@ for matchpair in matchdata:
         #this corresponds to the indices:
         b_low = 704
         b_high = 3392
-        #block = block[b_low:b_high]
+        block = block[b_low:b_high]
 
         NCHANS = block.shape[0]
         #redefine FCH1
+        #176 here is (1024 - 672) / 2
         FCH1 = FCH1 - 176
         for spl in range(split):
 
@@ -112,8 +133,9 @@ for matchpair in matchdata:
                 if START_AZ == 360:
                     this_ts = this_ts[::-1]
 
-                print(elev_samples[ELEV])
 
-                np.savetxt(obsdir + "datafile_FCEN_" + str(FCENTER) + "_EL_" + str(ELEV) + ".txt", this_ts)
+                this_ts = downsample(this_ts, DOWNSAMPLE_FACTOR)
+
+                np.savetxt(obsdir + "datafile_FCEN_" + str(FCENTER) + "_EL_" + str(ELEV) + "_ANTLO_" + ant + ".txt", this_ts)
 
 

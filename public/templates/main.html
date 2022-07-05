@@ -44,27 +44,42 @@
 
         #fslider{
             position: fixed;
+            top: 10%;
             width: 30%;
-            lefT: 50%;
+            left: 20%;
             transform: translate(-50%, 0);
         }
 
         #fval{
             position: fixed;
             font-family: Source Code Pro, Courier;
-            left: 50%;
+            left: 20%;
             transform: translate(-50%, 0);
-            top: 7%;
+            top: 17%;
             color: #aab;
+        }
+
+        .antbutton{
+            position: fixed;
+            font-family: Source Code Pro, Courier;
+            background-color: #345;
+            border: none;
+            padding: 2vh 1vw;
+            color: white;
         }
     </style>
 </head>
 <body>
-    <input id="fslider" class="slider" step="10" type="range" min="1500" max="3000" value="6000" onchange="sliderValChange()">
+    <input id="fslider" class="slider" step="10" type="range" min="200" max="12000" onchange="sliderValChange()">
     <div id="fval"></div>
 </body>
 <script>
     var fslider = document.getElementById("fslider")
+    var ma = fslider.max
+    var mi = fslider.min
+
+    fslider.value = mi
+
     var fval = document.getElementById("fval")
 
     var LAST_SCAN = '';
@@ -97,13 +112,19 @@
             var img = document.createElement('img')
             img.src = OBSFREQS[freq]
             img.style.position = "fixed"
-            img.style.left = "50%"
+            img.style.left = "65%"
             img.style.top = "50%"
-            img.style.transform = "translate(-50%, -50%)"
+
             img.id = "im_" + freq
             document.body.appendChild(img)
+            img.width = String(1 * window.innerWidth / 2)
+            img.style.transform = "translate(-50%, -50%)"
         }
+        fslider.value = Object.keys(OBSFREQS)[0]
+        fslider.min = Object.keys(OBSFREQS)[0] * 1 - 50
+        fslider.max = Object.keys(OBSFREQS)[Object.keys(OBSFREQS).length - 1] * 1 + 50
         sliderValChange()
+        fslider.focus()
     }
   
     function fetchObsFreqs(){
@@ -130,6 +151,34 @@
         //}
     }
 
+    function antChoiceChange(b){
+        var l = ANTS
+        l.push("Combined")
+        for (var ant of l){
+            document.getElementById("antbutton_" + ant).style.backgroundColor = "#345"
+        }
+        b.style.backgroundColor = "#567"
+    }
+
+    function addAntButtons(){
+        var i = 0;
+        var l = ANTS
+        l.push("Combined")
+        for (var ant of l){
+            let b = document.createElement("button")
+            b.id = "antbutton_" + ant
+            b.classList.add("antbutton")
+            b.style.left = (i + 1) * 5 + "%"
+            b.style.top = "25%"
+            b.textContent = ant
+            b.onclick = function(){
+                antChoiceChange(b)
+            }
+            i = i + 1
+            document.body.appendChild(b)
+        }
+    }
+
     function fetchObsAnts(){
         var antreq = new XMLHttpRequest;
         antreq.open("GET", "/obs/" + LAST_SCAN + "/obsinfo.txt")
@@ -141,6 +190,7 @@
                         ANTS.push(ant)
                     }
                 }
+                //addAntButtons()
                 fetchObsFreqs()
             }
         }
@@ -151,8 +201,18 @@
     lrreq.send()
     lrreq.onreadystatechange = function(){
         if (this.readyState == 4 && this.status == 200){
-            LAST_SCAN = this.responseText.replace("\n", "");
-            fetchObsFreqs()
+	        var scan = window.location.href.split("?")[1]
+            if (scan != undefined){
+                scan = scan.split("=")[1]
+            }
+            if (scan != undefined){
+                LAST_SCAN = scan
+            }
+            else{
+                LAST_SCAN = this.responseText.replace("\n", "");
+            }
+	        //fetchObsFreqs()
+            fetchObsAnts()
         }
     }
 
