@@ -31,16 +31,6 @@
             padding: 1vh 1vh;
         }
 
-        #formcontainer{
-            position: relative;
-            transform: translate(0%, 0%);
-            left: 0%;
-            width: 60%;
-            text-align: right;
-            color: white;
-            margin-top: 2%;
-        }
-
         #queryresults{
             position: relative;
             margin-top: 5%;
@@ -48,93 +38,188 @@
             width: 96%;
             color: white;
             border: 0.1vh solid #888;
+            table-layout: fixed;
         }
 
         a{
             color: #aaf
         }
 
-        table{
+        #queryresults{
             border-collapse: collapse;
+            font-size: calc(1.1vh + 0.5vw);
         }
 
-        tr:nth-child(5n + 1){
+        #queryresults tr:nth-child(5n + 1){
             border-bottom: 0.1vh solid #888;
         }
 
-        table tr td:first-child{
+        #queryresults tr td:first-child{
             padding-right: 2vh
         }
 
-        td:nth-child(8n + 1){
+        #queryresults td:nth-child(9n + 1){
             text-align: right;
+            width: 5%;
         }
 
-        td:nth-child(8n + 2){
-            color: #0ff
+        #queryresults td:nth-child(9n + 2){
+            color: #0ff;
+            width: 20%;
         }
 
-        td:nth-child(8n + 3){
+        #queryresults td:nth-child(9n + 3){
             color: #09e;
+            width: 7%;
         }
 
-        td:nth-child(8n + 4){
+        #queryresults td:nth-child(9n + 4){
             color: #09e;
+            width: 7%;
         }
 
-        td:nth-child(8n + 5){
+        #queryresults td:nth-child(9n + 5){
             color: #d55;
+            width: 20%;
         }
 
-        td:nth-child(8n + 6){
+        #queryresults td:nth-child(9n + 6){
             color: #f22;
+            width: 12%;
         }
 
-        td:nth-child(8n + 7){
+        #queryresults td:nth-child(9n + 7){
             color: #ff2;
+            width: 7%;
         }
 
-        td:nth-child(8n){
+        #queryresults td:nth-child(9n + 8){
+            color: #888;
+            width: 5%;
+        }
+
+        #queryresults td:nth-child(9n){
             color: #aaf;
+            width: 17%;
+        }
+
+        #formdetails{
+            position: relative;
+            left: 50%;
+            transform: translate(-50%, 0%);
+            color: white;
+            table-layout: fixed;
+            width: 55%;
+        }
+
+        #formdetails td{
+            padding-top: 1vh;
+            padding-bottom: 1vh;
+        }
+
+        #formdetails td:nth-child(2n){
+            padding-left: 1vh;
+        }
+
+        #formdetails td:nth-child(2n + 1){
+            padding-right: 1vh;
+            text-align: right;
         }
     </style>
 </head>
 <body>
-    <div id="formcontainer">
-	    Center Frequency (MHz): <input class="forminput" type="text" id="cfreq">
-        <br><br>
-        Frequency Range (MHz): <input class="forminput" type="text" id="frange" value="25">
-        <br><br>
-        Azimuth: <input class="forminput" type="text" id="az">
-        <br><br>
-        Minimum Effective Azimuth Width: <input class="forminput" type="text" id="azwidth" value="0.5">
-        <br><br>
-        Azimuth Half-Range: <input class="forminput" type="text" id="azrange" value="1">
-        <br><br>
-        Elevation: <input class="forminput" type="text" id="el">
-        <br><br>
-        Elevation Range: <input class="forminput" type="text" id="elrange" value="2.5">
-        <br><br>
-        Max # of matches: <input class="forminput" type="text" id="maxhits" value="100">
-        <br><br><br>
-        <button class="formbutton" onclick="javascript:submitQuery()">
-            Submit Query
-        </button>
-        <button class="formbutton" onclick="javascript:searchFullSky()">
-            Search Entire Sky
-        </button>
-    </div>
+    <table id="formdetails">
+        <tbody>
+            <tr>
+                <td>
+                    Center Frequency (MHz):
+                </td>
+                <td>
+                    <input class="forminput" type="text" id="cfreq">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Frequency Range (MHz):
+                </td>
+                <td>
+                    <input class="forminput" type="text" id="frange" value="25">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Azimuth:
+                </td>
+                <td>
+                    <input class="forminput" type="text" id="az">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Minimum Effective Azimuth Width:
+                </td>
+                <td>
+                    <input class="forminput" type="text" id="azwidth" value="0.5">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Azimuth Half-Range:
+                </td>
+                <td>
+                    <input class="forminput" type="text" id="azrange" value="1">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Elevation:
+                </td>
+                <td>
+                    <input class="forminput" type="text" id="el">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Elevation Range:
+                </td>
+                <td>
+                    <input class="forminput" type="text" id="elrange" value="2.5">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Max # of matches:
+                </td>
+                <td>
+                    <input class="forminput" type="text" id="maxhits" value="100">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <button class="formbutton" onclick="javascript:submitQuery()">
+                        Submit Query 
+                    </button>
+                </td>
+                <td>
+                    <button class="formbutton" onclick="javascript:searchFullSky()">
+                        Search Entire Sky @ CFREQ
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 
     <table id="queryresults">
         <tbody>
-            <tr>
+            <tr style='background-color: #123'>
                 <td>RANK</td>
                 <td>OBS</td>
                 <td>AZ</td>
                 <td>ELEV</td>
-                <td>AZIMUTHAL WIDTH</td>
+                <td>MEAN POWER INCREASE (dB)</td>
                 <td>EFF. AZ. WIDTH</td>
                 <td>CFREQ</td>
+                <td>ANTLO</td>
                 <td>URL</td>
             </tr>
         </tbody>
@@ -150,6 +235,14 @@
         el.value = 45
         elrange.value = 45
         submitQuery()
+    }
+
+    var ROWCOLOR = "#012"
+    function getRowColor(c){
+        if (c == "#012"){
+            return "#152535"
+        }
+        return "#012"
     }
 
     function submitQuery(){
@@ -168,14 +261,22 @@
             queryresults.deleteRow(i)
         }
 
+       
         var req = new XMLHttpRequest;
-        req.open("GET", "/query/SELECT * from rfisources where cfreq > " + flo + " and cfreq < " + fhi + " and (end_az + start_az) <div> 2 > " + alo + " and (end_az + start_az) <div> 2 < " + ahi + " and COS(RADIANS(elev)) * (end_az - start_az) > " + azwidth.value + " and elev > " + elo + " and elev < " + ehi + " order by (end_az - start_az) * COS(RADIANS(elev)) DESC limit " + maxhits.value)
+        req.open("GET", "/query/SELECT * from rfisources where cfreq > " + flo + " and cfreq < " + fhi + " and (end_az + start_az) <div> 2 > " + alo + " and (end_az + start_az) <div> 2 < " + ahi + " and COS(RADIANS(elev)) * (end_az - start_az) > " + azwidth.value + " and elev > " + elo + " and elev < " + ehi + " order by exceed DESC limit " + maxhits.value)
         req.send()
         req.onreadystatechange = function(){
             if (this.readyState == 4 && this.status == 200){
                 var data = req.responseText.split("\n")
                 data = data.filter(el => el != "")
                 for (var ind = 0; ind < data.length; ind++){
+                    //0 is obs
+                    //1 is start az
+                    //2 is end az
+                    //3 is elevation
+                    //4 is cfreq
+                    //5 is exceed power
+                    //6 is antlo
                     let entry = data[ind]
                     var spl = entry.split(",")
                     var row = document.createElement("tr")
@@ -189,17 +290,26 @@
                     row.innerHTML += "<td>" + avgaz + "</td>"
                     //now the elevation
                     row.innerHTML += "<td>" + spl[3] + "</td>"
-                    //now the raw azimuthal width
-                    let azwidth = spl[2] - spl[1]
-                    row.innerHTML += "<td>" + Math.round(100 * azwidth) / 100 + "</td>"
+                    //now the exceed value
+                    row.innerHTML += "<td>" + spl[5] + "</td>"
                     //now the effective width
+                    let azwidth = spl[2] - spl[1]
                     row.innerHTML += "<td>" + Math.round(100 * azwidth * Math.cos(spl[3] * Math.PI / 180)) / 100 + "</td>"
 
                     //now the CFREQ
                     row.innerHTML += "<td>" + spl[4] + "</td>"
 
+                    //now the antlo
+                    row.innerHTML += "<td>" + spl[6] + "</td>"
 
+                    //now the url
                     row.innerHTML += "<td><a href='/main?obs=" + spl[0] + "&freq=" + spl[4].replace(" ", "") + "' target='_blank'>View in portal --></a></td>"
+                    //give the table row alternating background colors based on the observation
+                    if (row.children[1].textContent != tbody.children[tbody.children.length - 1].children[1].textContent){
+                        ROWCOLOR = getRowColor(ROWCOLOR)
+                    }
+                    row.style.backgroundColor = ROWCOLOR 
+
                     tbody.appendChild(row)
                 }
             }
