@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>ATA RFI Catalog</title>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300&display=swap" rel="stylesheet">
+    <style>
+        body{
+            font-family: Source Code Pro;
+            background-color: #123;
+        }
+        
+        .forminput{
+            font-family: Source Code Pro;
+            background-color: #345;
+            border: none;
+            color: white;
+            padding: 1vh 1vh;
+        }
+
+        .forminput:focus{
+            outline: none
+        }
+
+        .formbutton{
+            font-family: Source Code Pro;
+            background-color: #666;
+            border: none;
+            color: #eee;
+            padding: 1vh 1vh;
+        }
+
+        #formcontainer{
+            position: relative;
+            transform: translate(0%, 0%);
+            left: 0%;
+            width: 60%;
+            text-align: right;
+            color: white;
+            margin-top: 2%;
+        }
+
+        #queryresults{
+            position: relative;
+            margin-top: 5%;
+            left: 2%;
+            width: 96%;
+            color: white;
+            border: 0.1vh solid #888;
+        }
+
+        a{
+            color: #aaf
+        }
+
+        table{
+            border-collapse: collapse;
+        }
+
+        tr:nth-child(5n + 1){
+            border-bottom: 0.1vh solid #888;
+        }
+
+        table tr td:first-child{
+            padding-right: 2vh
+        }
+
+        td:nth-child(8n + 1){
+            text-align: right;
+        }
+
+        td:nth-child(8n + 2){
+            color: #0ff
+        }
+
+        td:nth-child(8n + 3){
+            color: #09e;
+        }
+
+        td:nth-child(8n + 4){
+            color: #09e;
+        }
+
+        td:nth-child(8n + 5){
+            color: #d55;
+        }
+
+        td:nth-child(8n + 6){
+            color: #f22;
+        }
+
+        td:nth-child(8n + 7){
+            color: #ff2;
+        }
+
+        td:nth-child(8n){
+            color: #aaf;
+        }
+    </style>
+</head>
+<body>
+    <div id="formcontainer">
+	    Center Frequency (MHz): <input class="forminput" type="text" id="cfreq">
+        <br><br>
+        Frequency Range (MHz): <input class="forminput" type="text" id="frange" value="25">
+        <br><br>
+        Azimuth: <input class="forminput" type="text" id="az">
+        <br><br>
+        Minimum Effective Azimuth Width: <input class="forminput" type="text" id="azwidth" value="0.5">
+        <br><br>
+        Azimuth Half-Range: <input class="forminput" type="text" id="azrange" value="1">
+        <br><br>
+        Elevation: <input class="forminput" type="text" id="el">
+        <br><br>
+        Elevation Range: <input class="forminput" type="text" id="elrange" value="2.5">
+        <br><br>
+        Max # of matches: <input class="forminput" type="text" id="maxhits" value="100">
+        <br><br><br>
+        <button class="formbutton" onclick="javascript:submitQuery()">
+            Submit Query
+        </button>
+        <button class="formbutton" onclick="javascript:searchFullSky()">
+            Search Entire Sky
+        </button>
+    </div>
+
+    <table id="queryresults">
+        <tbody>
+            <tr>
+                <td>RANK</td>
+                <td>OBS</td>
+                <td>AZ</td>
+                <td>ELEV</td>
+                <td>AZIMUTHAL WIDTH</td>
+                <td>EFF. AZ. WIDTH</td>
+                <td>CFREQ</td>
+                <td>URL</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+<script>
+    var tbody = queryresults.children[0];
+
+    function searchFullSky(){
+        //frange.value = 336
+        az.value = 180
+        azrange.value = 180
+        el.value = 45
+        elrange.value = 45
+        submitQuery()
+    }
+
+    function submitQuery(){
+        var flo = cfreq.value * 1 - frange.value * 1
+        var fhi = cfreq.value * 1 + frange.value * 1
+
+        var elo = el.value * 1 - elrange.value * 1
+        var ehi = el.value * 1 + elrange.value * 1
+
+        var alo = az.value * 1 - azrange.value * 1
+        var ahi = az.value * 1 + azrange.value * 1
+
+        console.log(flo, fhi, elo, ehi)
+
+        for (var i = tbody.children.length - 1; i > 0; i--){
+            queryresults.deleteRow(i)
+        }
+
+        var req = new XMLHttpRequest;
+        req.open("GET", "/query/SELECT * from rfisources where cfreq > " + flo + " and cfreq < " + fhi + " and (end_az + start_az) <div> 2 > " + alo + " and (end_az + start_az) <div> 2 < " + ahi + " and COS(RADIANS(elev)) * (end_az - start_az) > " + azwidth.value + " and elev > " + elo + " and elev < " + ehi + " order by (end_az - start_az) * COS(RADIANS(elev)) DESC limit " + maxhits.value)
+        req.send()
+        req.onreadystatechange = function(){
+            if (this.readyState == 4 && this.status == 200){
+                var data = req.responseText.split("\n")
+                data = data.filter(el => el != "")
+                for (var ind = 0; ind < data.length; ind++){
+                    let entry = data[ind]
+                    var spl = entry.split(",")
+                    var row = document.createElement("tr")
+                    
+                    //first the rank
+                    row.innerHTML += "<td>" + (ind + 1) + "</td>"
+                    //now the obs name
+                    row.innerHTML += "<td>" + spl[0] + "</td>"
+                    //now the average azimuth
+                    let avgaz = Math.round(100 * 0.5 * (spl[1] * 1 + spl[2] * 1)) / 100
+                    row.innerHTML += "<td>" + avgaz + "</td>"
+                    //now the elevation
+                    row.innerHTML += "<td>" + spl[3] + "</td>"
+                    //now the raw azimuthal width
+                    let azwidth = spl[2] - spl[1]
+                    row.innerHTML += "<td>" + Math.round(100 * azwidth) / 100 + "</td>"
+                    //now the effective width
+                    row.innerHTML += "<td>" + Math.round(100 * azwidth * Math.cos(spl[3] * Math.PI / 180)) / 100 + "</td>"
+
+                    //now the CFREQ
+                    row.innerHTML += "<td>" + spl[4] + "</td>"
+
+
+                    row.innerHTML += "<td><a href='/main?obs=" + spl[0] + "&freq=" + spl[4].replace(" ", "") + "' target='_blank'>View in portal --></a></td>"
+                    tbody.appendChild(row)
+                }
+            }
+        }
+    }
+
+    document.onkeydown = function(e){
+        if (e.keyCode == 13){
+            //submitQuery()
+        }
+    }
+</script>
+</html>

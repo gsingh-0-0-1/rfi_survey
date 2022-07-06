@@ -104,29 +104,48 @@
                 dispstyle = "none"
             }
             document.getElementById("im_" + freq).style.display = dispstyle
+            document.getElementById("comb_im_" + freq).style.display = dispstyle
         }
     }
 
     function fetchImages(){
-        for (var freq of Object.keys(OBSFREQS)){
+        for (var freq of FREQLIST){
             var img = document.createElement('img')
-            img.src = OBSFREQS[freq]
+            img.src = OBSFREQS[freq][0]
             img.style.position = "fixed"
-            img.style.left = "65%"
+            img.style.left = "75%"
             img.style.top = "50%"
 
             img.id = "im_" + freq
             document.body.appendChild(img)
             img.width = String(1 * window.innerWidth / 2)
             img.style.transform = "translate(-50%, -50%)"
+
+            var comb = document.createElement('img')
+            comb.src = OBSFREQS[freq][0].replace(".png", "_combined.png")
+            comb.style.position = "fixed"
+            comb.style.left = "20%"
+            comb.style.top = "25%"
+            comb.style.transform = "translate(-50%, 0%)"
+            
+            comb.id = "comb_im_" + freq
+            document.body.appendChild(comb)
+            comb.width = String(window.innerWidth * 0.4)
+            
         }
-        fslider.value = Object.keys(OBSFREQS)[0]
-        fslider.min = Object.keys(OBSFREQS)[0] * 1 - 50
-        fslider.max = Object.keys(OBSFREQS)[Object.keys(OBSFREQS).length - 1] * 1 + 50
+        fslider.step = FREQLIST[1] - FREQLIST[0]
+        fslider.min = FREQLIST[0] * 1 - (fslider.step * 3)
+        fslider.max = FREQLIST[FREQLIST.length - 1] * 1 + (fslider.step * 3)
+        fslider.value = fslider.min
         sliderValChange()
         fslider.focus()
+        if (url.searchParams.get("freq") != undefined){
+            fslider.value = url.searchParams.get("freq")
+            sliderValChange()
+        }
     }
-  
+    
+    FREQLIST = []
     function fetchObsFreqs(){
         //for (var ant of ANTS){
             var freqreq = new XMLHttpRequest;
@@ -135,11 +154,24 @@
             freqreq.onreadystatechange = function(){
                 if (this.readyState == 4 && this.status == 200){
                     var spl = this.responseText.split(",")
+                    spl = spl.filter(el => el != "")
+                    spl = spl.map(Number)
+                    spl = spl.sort(function(a, b){
+                        return a - b
+                    })
+                    console.log(spl)
+                    spl = spl.map(String)
+                    for (var i = 0; i < spl.length; i++){
+                        if (!spl[i].includes(".")){
+                            spl[i] = spl[i] + ".0"
+                        }
+                    }
+                    FREQLIST = spl
                     for (var f of spl){
                         if (f == "" || f == "\n"){
                             continue
                         }
-                        f = f * 1
+
                         if (!Object.keys(OBSFREQS).includes(f)){
                             OBSFREQS[f] = []
                         }
@@ -196,15 +228,14 @@
         }
     }
 
+    var url = new URL(window.location.href);
+
     var lrreq = new XMLHttpRequest;
     lrreq.open("GET", "/obs/lastscan.txt")
     lrreq.send()
     lrreq.onreadystatechange = function(){
         if (this.readyState == 4 && this.status == 200){
-	        var scan = window.location.href.split("?")[1]
-            if (scan != undefined){
-                scan = scan.split("=")[1]
-            }
+	        var scan = url.searchParams.get("obs")
             if (scan != undefined){
                 LAST_SCAN = scan
             }
@@ -215,6 +246,7 @@
             fetchObsAnts()
         }
     }
+
 
 </script>
 </html>

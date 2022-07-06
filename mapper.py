@@ -17,7 +17,7 @@ def downsample(l, f):
     ds = sum(updated) / f
     return ds
 
-DOWNSAMPLE_FACTOR = 4
+DOWNSAMPLE_FACTOR = 16
 
 MJD_UNIX_DAYS = 40587
 
@@ -36,7 +36,8 @@ antlo_list = os.listdir(ephemdir)
 
 data = {}
 
-split = 64
+#~5 MHz bandwidth
+split = 128
 
 bw = open(obsdir + "df_bw.txt", "w")
 bw.write(str(672 / split))
@@ -73,7 +74,10 @@ for ant in antlo_list:
 
         db = sqlite3.connect("obsdata.db")
         cur = db.cursor()
-        cur.execute(" INSERT INTO obsdata VALUES ('" + SCAN + "', " + str(CFREQ) + ") ")
+        try:
+            cur.execute(" INSERT INTO obsdata VALUES ('" + SCAN + "', " + str(CFREQ) + ") ")
+        except sqlite3.IntegrityError:
+            pass
         db.commit()
         db.close()
 

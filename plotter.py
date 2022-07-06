@@ -42,13 +42,20 @@ for freq in freqs:
     ffile.write(",")
 ffile.close()
 
+efile = open(scandir + "obsels.txt", "w")
+for el in els:
+    efile.write(str(el) + ",")
+efile.close()
+
+
 bw = open(scandir + "df_bw.txt")
 IMG_BW = bw.read()
 bw.close()
 
-NGRAPHS = len(antlos) + 1
+NGRAPHS = len(antlos)# + 1
 
-layouts = {2 : [1, 2],
+layouts = {1 : [1, 1],
+        2 : [1, 2],
         3 : [2, 2],
         4 : [2, 2]
         }
@@ -56,11 +63,12 @@ layouts = {2 : [1, 2],
 NROWS = layouts[NGRAPHS][0]
 NCOLS = layouts[NGRAPHS][1]
 
-TITLE_FSIZE = 21
+TITLE_FSIZE = 18
 
-plt.figure(figsize = (9 * NCOLS, 9 * NROWS))
+def initPlot():
+    plt.figure(figsize = (9 * NCOLS, 9 * NROWS))
 
-plt.rcParams.update({'text.color': "white",
+    plt.rcParams.update({'text.color': "white",
                      'axes.labelcolor': "white",
                      "axes.edgecolor" : "w",
                      "xtick.color" : "w",
@@ -68,10 +76,16 @@ plt.rcParams.update({'text.color': "white",
 
 plt.clf()
 
+
 for freq in freqs:
-    for i in range(len(antlos) + 1):
+    plt.close()
+    initPlot()
+    combTS = []
+    for i in range(len(antlos)):
         plt.subplot(NROWS, NCOLS, i + 1, projection = 'polar')
         plt.ylim([90, 0])
+    #plt.subplot(NROWS, NCOLS, NROWS * NCOLS, projection = 'polar')
+    #plt.ylim([90, 0])
     print("Plotting at", freq)
     for el in els:
         TS = 0
@@ -103,8 +117,9 @@ for freq in freqs:
         
         TS = TS / N
         Z = np.array([TS, TS]).T
-        plt.subplot(NROWS, NCOLS, NGRAPHS, projection = 'polar')
-        plt.pcolormesh(th, r, Z, vmin = -80, vmax=-30)
+        combTS.append(Z)
+        #plt.subplot(NROWS, NCOLS, NROWS * NCOLS, projection = 'polar')
+        #plt.pcolormesh(th, r, Z, vmin = -80, vmax=-30)
 
 
     for ind in range(len(antlos)):
@@ -115,12 +130,34 @@ for freq in freqs:
         plt.grid()
         plt.colorbar()
     
-    plt.subplot(NROWS, NCOLS, NGRAPHS, projection = 'polar')
-    plt.title("CFREQ " + str(freq) + " | BW " + str(IMG_BW) + " | MHz, Combined", fontsize = TITLE_FSIZE)
+    #plt.subplot(NROWS, NCOLS, NROWS * NCOLS, projection = 'polar')
+    #plt.title("CFREQ " + str(freq) + " | BW " + str(IMG_BW) + " | MHz, Combined", fontsize = TITLE_FSIZE)
 
+    #plt.grid()
+    #plt.colorbar()
+    #plt.tight_layout(pad = 5)
+    plt.savefig(scandir + "FCEN_" + freq + ".png", transparent = True)
+    plt.close()
+
+    plt.subplot(1, 1, 1, projection = 'polar')
+    plt.ylim([90, 0])
+    
+    for ind in range(len(els)):
+        el = els[ind]
+        ts = combTS[ind]
+
+        rad = [float(el) - spacing / 2, float(el) + spacing / 2]
+        a = np.linspace(0, 2 * np.pi, ts.shape[0])
+
+        r, th = np.meshgrid(rad, a)
+
+        plt.pcolormesh(th, r, ts, vmin = -80, vmax = -30)
+    
+
+    plt.title("CFREQ " + str(freq) + " | BW " + str(IMG_BW) + " | MHz, Combined")
     plt.grid()
     plt.colorbar()
-    plt.tight_layout(pad = 5)
-    plt.savefig(scandir + "FCEN_" + freq + ".png", transparent = True)
-    plt.clf()
-
+    plt.tight_layout()
+    plt.savefig(scandir + "FCEN_" + freq + "_combined.png", transparent = True)
+    
+    plt.close()

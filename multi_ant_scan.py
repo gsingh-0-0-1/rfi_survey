@@ -99,8 +99,9 @@ for elev in ELEVS[::-1]:
 
     ant_elevs[ant_list[ant_ind]].append(elev)
 
+#override for now - every antenna should look at the entire sky
 for ant in ant_list:
-    ant_elevs[ant] = ant_elevs[ant][::-1]
+    ant_elevs[ant] = ELEVS#ant_elevs[ant][::-1]
 
 ANT_INIT_ELEVS = [ant_elevs[ant][0] for ant in ant_list]
 
@@ -226,3 +227,4 @@ ls.close()
 ata_control.release_antennas(ant_list, False) 
 
 os.system("python scanproc.py " + str(THIS_SCAN_TIME))
+os.system("python catalogsources.py " + str(THIS_SCAN_TIME))
