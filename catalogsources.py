@@ -57,12 +57,12 @@ for datafile in datafiles:
         start = round(360 * cluster[0] / nsamps, PREC)
         end = round(360 * cluster[1] / nsamps, PREC)
         exceed = round(arr[cluster[0]:cluster[1] + 1].mean() - mean, 4)
-        avg = round(0.5 * (cluster[0] + cluster[1]), PREC)
+        avg = round(0.5 * (start + end), PREC)
         print("\t" + bcolors.OKCYAN + str(avg) + " (" + str(start) + " -> " + str(end) + ")" + bcolors.ENDC)
         db = sqlite3.connect(DBNAME)
         cur = db.cursor()
         try:
-            cur.execute("INSERT INTO rfisources VALUES ('" + SCAN + "', " + str(start) + ", " + str(end) + ", " + str(ELEV) + ", " + str(FCEN) + ", " + str(exceed) + ", '" + ANTLO + "')")
+            cur.execute("INSERT INTO rfisources VALUES ('" + SCAN + "', " + str(start) + ", " + str(end) + ", " + str(ELEV) + ", " + str(FCEN) + ", " + str(exceed) + ", '" + ANTLO + "', NULL, NULL, NULL)")
         except sqlite3.IntegrityError:
             print("\t" + bcolors.WARNING + "HIT ALREADY IN SQL DATABASE" + bcolors.ENDC)
         db.commit()

@@ -58,49 +58,54 @@
             padding-right: 2vh
         }
 
-        #queryresults td:nth-child(9n + 1){
+        #queryresults td:nth-child(10n + 1){
             text-align: right;
-            width: 5%;
+            width: 4%;
         }
 
-        #queryresults td:nth-child(9n + 2){
+        #queryresults td:nth-child(10n + 2){
             color: #0ff;
-            width: 20%;
+            width: 16%;
         }
 
-        #queryresults td:nth-child(9n + 3){
+        #queryresults td:nth-child(10n + 3){
             color: #09e;
             width: 7%;
         }
 
-        #queryresults td:nth-child(9n + 4){
+        #queryresults td:nth-child(10n + 4){
             color: #09e;
             width: 7%;
         }
 
-        #queryresults td:nth-child(9n + 5){
+        #queryresults td:nth-child(10n + 5){
             color: #d55;
-            width: 20%;
+            width: 13%;
         }
 
-        #queryresults td:nth-child(9n + 6){
+        #queryresults td:nth-child(10n + 6){
             color: #f22;
-            width: 12%;
+            width: 11%;
         }
 
-        #queryresults td:nth-child(9n + 7){
+        #queryresults td:nth-child(10n + 7){
             color: #ff2;
-            width: 7%;
+            width: 6%;
         }
 
-        #queryresults td:nth-child(9n + 8){
+        #queryresults td:nth-child(10n + 8){
             color: #888;
             width: 5%;
         }
 
-        #queryresults td:nth-child(9n){
-            color: #aaf;
+        #queryresults td:nth-child(10n + 9){
+            color #666;
             width: 17%;
+        }
+
+        #queryresults td:nth-child(10n){
+            color: #aaf;
+            width: 13%;
         }
 
         #formdetails{
@@ -125,6 +130,49 @@
             padding-right: 1vh;
             text-align: right;
         }
+
+        /*Checkboxes styles*/
+        input[type="checkbox"] { display: none; }
+
+        input[type="checkbox"] + label {
+            display: block;
+            position: relative;
+            padding-left: 35px;
+            margin-bottom: 20px;
+            color: #ddd;
+            cursor: pointer;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        input[type="checkbox"] + label:last-child { margin-bottom: 0; }
+
+        input[type="checkbox"] + label:before {
+            content: '';
+            display: block;
+            width: 20px;
+            height: 20px;
+            border: 1px solid #6cc0e5;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: .6;
+            -webkit-transition: all .12s, border-color .08s;
+            transition: all .12s, border-color .08s;
+        }
+
+        input[type="checkbox"]:checked + label:before {
+            width: 10px;
+            top: -5px;
+            left: 5px;
+            border-radius: 0;
+            opacity: 1;
+            border-top-color: transparent;
+            border-left-color: transparent;
+            -webkit-transform: rotate(45deg);
+			transform: rotate(45deg);
+		}
     </style>
 </head>
 <body>
@@ -188,10 +236,35 @@
             </tr>
             <tr>
                 <td>
+                    Start Date:
+                </td>
+                <td>
+                    <input class="forminput" type="text" id="startdate" placeholder="YYYY-MM-DD">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    End Date:
+                </td>
+                <td>
+                    <input class="forminput" type="text" id="enddate" placeholder="YYYY-MM-DD">
+                </td>
+            </tr>
+            <tr>
+                <td>
                     Max # of matches:
                 </td>
                 <td>
                     <input class="forminput" type="text" id="maxhits" value="100">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Limit to Named Sources
+                </td>
+                <td>
+                    <input type="checkbox" id="sourcesearch">
+                    <label for="sourcesearch" style="color: #FFFFFF; display: inline"></label>
                 </td>
             </tr>
             <tr>
@@ -216,10 +289,11 @@
                 <td>OBS</td>
                 <td>AZ</td>
                 <td>ELEV</td>
-                <td>MEAN POWER INCREASE (dB)</td>
+                <td>POWER SPIKE (dB)</td>
                 <td>EFF. AZ. WIDTH</td>
                 <td>CFREQ</td>
                 <td>ANTLO</td>
+                <td>SOURCE GUESS</td>
                 <td>URL</td>
             </tr>
         </tbody>
@@ -227,6 +301,16 @@
 </body>
 <script>
     var tbody = queryresults.children[0];
+
+    var COLORS = {0 : "#001020",
+        1 : "#081828",
+        2 : "#102030",
+        3 : "#182838",
+        4 : "#203040",
+        5 : "#283848",
+        6 : "#304050",
+        7 : "#384858"
+    }
 
     function searchFullSky(){
         //frange.value = 336
@@ -237,7 +321,7 @@
         submitQuery()
     }
 
-    var ROWCOLOR = "#012"
+
     function getRowColor(c){
         if (c == "#012"){
             return "#152535"
@@ -246,28 +330,100 @@
     }
 
     function submitQuery(){
-        var flo = cfreq.value * 1 - frange.value * 1
-        var fhi = cfreq.value * 1 + frange.value * 1
+        
+        var ROWCOLOR = "#012"
 
-        var elo = el.value * 1 - elrange.value * 1
-        var ehi = el.value * 1 + elrange.value * 1
+        var query_items = []
 
-        var alo = az.value * 1 - azrange.value * 1
-        var ahi = az.value * 1 + azrange.value * 1
+        //parse the CFREQ first
+        var item = "cfreq,"
+        if (cfreq.value.replaceAll(" ", "") == ""){
+            item = item + "IS NOT,NULL"
+        }
+        else{
+            var flo = cfreq.value * 1 - frange.value * 1
+            var fhi = cfreq.value * 1 + frange.value * 1
+            item = item + ">," + flo + ":cfreq,<," + fhi
+        }
 
-        console.log(flo, fhi, elo, ehi)
+        query_items.push(item)
+
+        //now the elevation
+        var item = "elev,"
+        if (el.value.replaceAll(" ", "") == ""){
+            item = item + "IS NOT,NULL"
+        }
+        else{
+            var elo = el.value * 1 - elrange.value * 1
+            var ehi = el.value * 1 + elrange.value * 1
+            item = item + ">," + elo + ":elev,<," + ehi
+        }
+
+        query_items.push(item)
+
+        //now the azimuth
+        var item = "(end_az+start_az)<div>2,"
+        if (azrange.value.replaceAll(" ", "") == ""){
+            azrange.value = 2.5
+        }
+
+        if (az.value.replaceAll(" ", "") == ""){
+            item = item + "IS NOT,NULL"
+        }
+        else{
+            var alo = az.value * 1 - azrange.value * 1
+            var ahi = az.value * 1 + azrange.value * 1
+            item = item + ">," + alo + ":(end_az+start_az)<div>2,<," + ahi
+        }
+
+        query_items.push(item)
+
+        if (startdate.value.replaceAll(" ", "") != ""){
+            query_items.push("replace(replace(obs<cm>'-'<cm>'')<cm>'<cl>'<cm>''),>,'" + startdate.value.replaceAll("-", "").replaceAll(":", "") + "000000'")
+        }
+        if (enddate.value.replaceAll(" ", "") != ""){
+            query_items.push("replace(replace(obs<cm>'-'<cm>'')<cm>'<cl>'<cm>''),<,'" + enddate.value.replaceAll("-", "").replaceAll(":", "") + "000000'")
+        }
+
+        //put everything else together
+        query_items.push("COS(RADIANS(elev))*(end_az-start_az),>," + azwidth.value.replaceAll("-", "").replaceAll(":", ""))
+
+        if (sourcesearch.checked){
+            query_items.push("source,IS NOT,NULL")
+        }
 
         for (var i = tbody.children.length - 1; i > 0; i--){
             queryresults.deleteRow(i)
         }
 
        
+        if (maxhits.value * 1 > 2000){
+            maxhits.value = 2000
+        }
         var req = new XMLHttpRequest;
-        req.open("GET", "/query/SELECT * from rfisources where cfreq > " + flo + " and cfreq < " + fhi + " and (end_az + start_az) <div> 2 > " + alo + " and (end_az + start_az) <div> 2 < " + ahi + " and COS(RADIANS(elev)) * (end_az - start_az) > " + azwidth.value + " and elev > " + elo + " and elev < " + ehi + " order by exceed DESC limit " + maxhits.value)
+
+        var query = "/query/" + query_items.join(":")
+        //for (var item of query_items){
+        //    query = query + item
+        //}
+
+        
+        query = query + "|"
+        
+        query = query + "exceed,DESC"
+
+        query = query + "|"
+
+        query = query + maxhits.value
+
+        
+
+        req.open("GET", query)
         req.send()
         req.onreadystatechange = function(){
             if (this.readyState == 4 && this.status == 200){
-                var data = req.responseText.split("\n")
+                console.log(this.responseText)
+                var data = this.responseText.split("\n")
                 data = data.filter(el => el != "")
                 for (var ind = 0; ind < data.length; ind++){
                     //0 is obs
@@ -277,6 +433,7 @@
                     //4 is cfreq
                     //5 is exceed power
                     //6 is antlo
+                    //7 is source guess
                     let entry = data[ind]
                     var spl = entry.split(",")
                     var row = document.createElement("tr")
@@ -302,13 +459,26 @@
                     //now the antlo
                     row.innerHTML += "<td>" + spl[6] + "</td>"
 
+                    //now the source guess
+                    if (spl[7] == "null" || spl[7] == null || spl[7].includes("null")){
+                        spl[7] = "?"
+                    }
+                    row.innerHTML += "<td>" + spl[7] + "</td>"
+
                     //now the url
                     row.innerHTML += "<td><a href='/main?obs=" + spl[0] + "&freq=" + spl[4].replace(" ", "") + "' target='_blank'>View in portal --></a></td>"
                     //give the table row alternating background colors based on the observation
                     if (row.children[1].textContent != tbody.children[tbody.children.length - 1].children[1].textContent){
                         ROWCOLOR = getRowColor(ROWCOLOR)
                     }
-                    row.style.backgroundColor = ROWCOLOR 
+                    /*var obs = spl[0];
+                    var t = obs.split("-")
+                    var t = t[t.length - 1].split(":")
+                    var r = (t[0] * 1)
+                    var g = (t[1] * 1)
+                    var b = (t[2] * 1)
+                    var c = (r + g + b) % Object.keys(COLORS).length*/
+                    row.style.backgroundColor = ROWCOLOR//COLORS[c]
 
                     tbody.appendChild(row)
                 }
