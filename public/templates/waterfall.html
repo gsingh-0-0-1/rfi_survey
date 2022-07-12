@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Obs Waterfall</title>
+    <style>
+        body{
+            background-color: #123;
+        }
+    </style>
+</head>
+<body>
+	
+</body>
+<script>
+    var OBS = window.location.pathname.replace("scanobs", "").replace("waterfall", "").replaceAll("/", "")
+    var ANTLOS = []
+    var ELEVS = []
+
+    function fetchImages(){
+        var c = 0
+        var r = 0
+        for (var elev of ELEVS){
+            c = 0
+            for (var antlo of ANTLOS){
+                var l = 20 + (c % 3) * 30
+                var t = 10 + r * 50
+                var img = document.createElement("img")
+                img.style.position = "absolute"
+                img.style.left = l + "%"
+                img.style.top = t + "%"
+                img.style.transform = "translate(-50%, 0)"
+                img.width = String(window.innerWidth / 3.5)
+
+                document.body.appendChild(img)
+                
+                img.src = "/obs/" + OBS + "/waterfall_ELEV_" + elev + "_ANTLO_" + antlo + ".png"
+                img.onerror = function(){
+                    document.body.removeChild(this)
+                }
+                c = c + 1
+            }
+            r = r + 1
+        }
+    }
+
+    function fetchElevs(){
+        var req = new XMLHttpRequest;
+        req.open("GET", "/obs/" + OBS + "/obsels.txt")
+        req.send()
+        req.onreadystatechange = function(){
+            if (this.readyState == 4 && this.status == 200){
+                ELEVS = this.responseText.split(",").filter(el => el != "" && el != "\n")
+                fetchImages()
+            }
+        }
+    }
+
+    function fetchAntennas(){
+        var req = new XMLHttpRequest;
+        req.open("GET", "/obs/" + OBS + "/obsinfo.txt")
+        req.send()
+        req.onreadystatechange = function(){
+            if (this.readyState == 4 && this.status == 200){
+                ANTLOS = this.responseText.split(",").filter(el => el != "" && el != "\n")
+                fetchElevs()
+            }
+        }
+    }
+
+    fetchAntennas()
+</script>
+</html>

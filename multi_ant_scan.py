@@ -129,11 +129,19 @@ for freq in freq_list:
                 raise e
         n += 1
 
+    ata_control.autotune(ant_list)
+    #setting the frequency
+    ata_control.set_freq([freq]*len(ant_list), ant_list, lo='a')
+
+
+    #tuning
+    snap_if.tune_if_antslo(antlo_list)
+
     FULL_EPHEM = {}
     for ant in ant_list:
         FULL_EPHEM[ant] = None
 
-    grace_time = 60
+    grace_time = 120
     spacing_time = 6
     
     t_start = time.time()
@@ -185,14 +193,6 @@ for freq in freq_list:
     print("OBS TIME\t", obs_time)
 
 
-    ata_control.autotune(ant_list)
-    #setting the frequency
-    ata_control.set_freq([freq]*len(ant_list), ant_list, lo='a')
-
-
-    #tuning
-    snap_if.tune_if_antslo(antlo_list)
-        
 
     for ant in ant_list:
         ephemid = ata_control.upload_ephemeris(ephem_names[ant])
@@ -227,8 +227,8 @@ ls.close()
 
 ata_control.release_antennas(ant_list, False) 
 
-os.system("python scanproc.py " + str(THIS_SCAN_TIME))
-os.system("python catalogsources.py " + str(THIS_SCAN_TIME))
-print("Starting satellite search process...")
-subprocess.Popen(["python", "satellitesearch.py", str(THIS_SCAN_TIME)], stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
+subprocess.Popen(["python",  "scanproc.py", str(THIS_SCAN_TIME)], stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
+#os.system("python catalogsources.py " + str(THIS_SCAN_TIME))
+#print("Starting satellite search process...")
+#subprocess.Popen(["python", "satellitesearch.py", str(THIS_SCAN_TIME)], stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
 print("Obs and processing finished.")

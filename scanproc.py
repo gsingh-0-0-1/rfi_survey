@@ -1,5 +1,6 @@
 import os
 import sys
+import subprocess
 
 SCAN = ''
 
@@ -11,6 +12,6 @@ except Exception as e:
 if "lastscan" in SCAN:
     sys.exit()
 
-os.system("python matcher.py " + SCAN + "; python mapper.py " + SCAN + "; python plotter.py " + SCAN)
-
+os.system("python matcher.py " + SCAN + "; python mapper.py " + SCAN + "; python plotter.py " + SCAN + "; python catalogsources.py " + SCAN)
+subprocess.Popen(["python", "satellitesearch.py", str(SCAN)], stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
 

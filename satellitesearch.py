@@ -145,7 +145,10 @@ def crossCheckRFIHits(timestamp):
         #cfreq = hit[4]
         #exceed = hit[5]
         antlo = hit[4]
-       
+      
+        if (end_az - start_az) == 0:
+            continue
+
         #if not ((1200 < cfreq < 1800) or (2200 < cfreq < 2400) or (3700 < cfreq < 4200) or (8000 < cfreq < 9000)):
         #    continue
 

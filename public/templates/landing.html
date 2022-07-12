@@ -1,223 +1,89 @@
-<html>
-	<head>
-		<title>
-			ATA RFI Survey Portal
-		</title>
-
-        <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300&display=swap" rel="stylesheet">
-
-		<style type="text/css">
-			body {}
-			.button {
-				background-color: var(--bcolor);
-				border: none;
-				color: white;
-				padding: 15px 24px;
-				text-align: center;
-				display: inline-block;
-				font-size: var(--fsize);
-				margin: 4px 2px;
-				cursor: pointer;
-            		}
-			a{
-				transition: transform .2s ease-out;
-			}
-			a:hover{
-				transform: translate(15px, 0px);
-			}
-                        ::-webkit-scrollbar {
-                                width: 10px;
-                        }
-
-                        /* Track */
-                        ::-webkit-scrollbar-track {
-                                background-image: linear-gradient(to bottom, #222, #494949);
-                        }
-
-                        /* Handle */
-                        ::-webkit-scrollbar-thumb {
-                                background: #234567;
-                        }
-
-                        /* Handle on hover */
-                        ::-webkit-scrollbar-thumb:hover {
-                                background: #345678;
-                        }
-			.linkwrap { position:relative; display:inline-block; }
-
-			.blocker { position:absolute; height:100%; width:100%; z-index:1; background:rgba(255,0,0,0.5);  }
-
-			.linkwrap iframe { z-index: 2; }
-		</style>
-	<head>
-
-	<body>
-		<div id="coloring" style="position: fixed; top: 0; left: 0; z-index: -1; background-image: linear-gradient(to bottom, #123456, #507090); width: 100%; height: 100%;">
-		</div>
-
-		<div id="bigtext_title" style="position: fixed; left: 3%: top: 2%; color: #888; font-size: 45px; font-family: Verdana">
-            &nbsp;ATA RFI Survey Portal <!--<span style="color: #afa; font-size: 20px"> [Still processing data...] </span>-->
-		</div>
-		<div style="position: fixed; left: 0%; top: 10%; background-image: linear-gradient(to bottom, #444499, #6a6aa9); width: 95%; height: 85%; overflow-y: scroll;" id="obslist">
-
-		</div>
-
-		<div id="searchbydate" style="position: fixed; top: 35%; left: 70%; font-family: Verdana; font-size: 18px; color: #aaa">
-			Search by observation date: <br>
-			<input id="date_input" name="date" type="text" placeholder="YYYY-MM-DD" style="border: 4px solid #22aa22; font-family: Verdana; outline: none;" onkeypress="javascript:fullInpMod(event)">
-			<select id="datecomp" style="outline: none">
-				<option value="on">On</option>
-				<option value="after">After</option>
-				<option value="before">Before</option>
-			</select>
-		</div>
-
-		<iframe id="ATA" style="position: fixed; left:70%; top: 60%; border: none" src='public/images/ata.jpg' onload="resizeIframe(this)">
-		</iframe>
-
-		<div style="position: fixed; top: 45%; left: 70%; font-family: Source Code Pro; font-size: 15px; color: #aaa; text-decoration: none;" id="catalogbutton">
-            <a style='background-color: #aaa; color: #222; position: fixed; margin-top: 2%; height 5%; text-align: center; padding: 10px 15px; font-size: 15px; font-family: Source Code Pro; text-decoration: none' target="_blank" href='/catalog'>Search RFI Catalog >></a>
-        </div>
-
-	</body>
-
-	<script type="text/javascript">
-		var url = window.location.search
-                urlParams = new URLSearchParams(url);
-                table = urlParams.get("table")
-	
-                if (table == undefined){
-                        table = 'obs_details'
-                }
-
-		var obs_type = ''
-
-
-		function resizeIframe(obj) {
-                	obj.style.height = obj.contentWindow.document.documentElement.scrollHeight + 'px';
-                	obj.style.width = obj.contentWindow.document.documentElement.scrollWidth + 'px';
-        	}
-		
-		function createObsList(obslist, start, stop, reset=true){
-			var obslist_orig = obslist
-        	obslist = obslist.split(",");
-			obslist.sort().reverse()
-            obslist = obslist.filter(el => !el.includes("lastscan"))
-			var obscontainer = document.getElementById("obslist")
-
-			if (reset){
-				obscontainer.innerHTML = ""
-			}
-
-            var obsloadbutton = document.getElementById("obsloadbutton")
-            if (obsloadbutton){
-                obsloadbutton.remove()
-			}
-
-            for (var i = start; i < obslist.length; i++){
-                if (obslist[i] == ""){
-                    continue
-                }
-
-                if (i == stop){
-                    var loadbutton = "<a id='obsloadbutton' style='background-color: #aaa; color: #222; display: inline-block; margin-left: -2%; margin-top: 2%; height: 4.5%; width: 40%; text-indent: 12.5%; text-align: left; padding: 10px; font-size: 20px; font-family: Verdana' class='button' href='javascript:createObsList(obs_here, " + stop + ", " + (stop+100) + ", reset=false)'>Load more observations</a>"
-                    obscontainer.innerHTML += loadbutton.replace("obs_here", '"' + obslist_orig +  '"')
-                    //console.log(loadbutton)
-                    break
-                }
-
-                var obsname = obslist[i]
-
-                var ind = INIT_OBSLIST.indexOf(obsname)
-                var freq = INIT_FREQLIST[ind]
-
-                var obs_href = "<a href='/main?obs=" + obsname + "' style='background-color: #aaa; display: inline-block; margin-left: -2%; margin-top: 2%; height: 4.5%; width: 40%; text-indent: 12.5%; padding: 10px; font-size: 20px; font-family: Verdana'>" + obsname + " @ " + freq + " </a><br>"
-                obscontainer.innerHTML += obs_href
-            }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300&display=swap" rel="stylesheet">
+    <title>ATA RFI Database</title>
+    <style>
+        body{
+            background-color: rgb(16, 32, 48);
         }
 
-        function fullInpMod(event){
-			if (event.keyCode == 13 || event.which == 13){}
-			else { return }
-			var date_inp = document.getElementById('date_input').value
-			date_inp = date_inp.replaceAll(" ", "")
-			var comp = document.getElementById('datecomp').value
-            if (comp == "on"){
-                createObsList(INIT_OBSLIST.filter(el => el.includes(date_inp)).join(","), 0, 100)
-            }
-            if (comp == "before" || comp == "after"){
-                var els = INIT_OBSLIST.filter(el => el.includes(date_inp))
-                var ind = INIT_OBSLIST.indexOf(els[0])
-                if (comp == "before"){
-                    createObsList(INIT_OBSLIST.slice(ind, INIT_OBSLIST.length).join(","), 0, 100)
-                }
-                if (comp == "after"){
-                    createObsList(INIT_OBSLIST.slice(0, ind).join(","), 0, 100)
-                }
-            }
-            /*req.open("GET", "/fullinpquery?table=" + table + "&source=" + sourcename.replace("+", "_") + "&date=" + date_inp + "&comp=" + comp);
-			req.send()
-			req.onreadystatechange = function(){
-				if (this.readyState == 4 && this.status == 200){
-					var obslist = this.responseText
-					console.log(obslist)
-					createObsList(obslist, 0, 100)
-				}
-			}*/
-		}
+        #titletext{
+            margin-top: 2%;
+            position: relative;
+            left: 2%;
+            font-size: 6vh;
+            color: #eee;
+            font-family: Source Code Pro;
+        }
 
-		/*function sourceMod(event){
-			if (event.keyCode == 13 || event.which == 13){
-			}
-			else{
-				return
-			}
-			var sourcename = document.getElementById('source_input').value
-			var source_req = new XMLHttpRequest;
-			source_req.open("GET", "/querybysource?source=" + sourcename)
-			source_req.send()
-			source_req.onreadystatechange = function(){
-				if (this.readyState == 4 && this.status == 200){
-					var obslist = this.responseText
-					createObsList(obslist)
-				}
-			}
-		}
+        #cursor{
+            color: #6f6;
+        }
 
-		function dateMod(event){
-			if (event.keyCode == 13 || event.which == 13){
-			}
-			else{
-				return
-			}
-			var date_inp = document.getElementById('date_input').value
-			if (date_inp == "" || date_inp.replaceAll(" ", "") == ''){
-				return ;
-			}
-			var datecomp = document.getElementById('datecomp').value
-			var date_req = new XMLHttpRequest;
-			date_req.open("GET", "/querybydate?date=" + date_inp + "&comp=" + datecomp + "&table=" + table)
-			date_req.send();
-			date_req.onreadystatechange = function(){
-				if (this.readyState == 4 && this.status == 200){
-					var obslist = this.responseText;
-					console.log(obslist)
-					createObsList(obslist)
-				}
-			}		
-		}*/
+        .urloption{
+            margin-top: 2%;
+            position: relative;
+            left: 10%;
+            font-size: 5vh;
+            color: #aaa;
+            font-family: Source Code Pro;
+        }
 
-        var INIT_OBSLIST = '';
-		var req = new XMLHttpRequest;
-		req.open("GET", "/obslist")
-        req.send()
-        req.onreadystatechange = function(){
-            if (this.readyState == 4 && this.status == 200){
-                var obslist_resp = this.responseText;
-                INIT_OBSLIST = obslist_resp.split("|")[0].split(",")
-                INIT_FREQLIST = obslist_resp.split("|")[1].split(",")
-                createObsList(INIT_OBSLIST.join(","), 0, 100);
+        a{
+            color: inherit;
+            text-decoration: none;
+        }
+
+        a:hover{
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="titletext">
+        obs-user@ata_rfi_database:/home$<span id="cursor">_</span>
+    </div>
+    <div class="urloption">
+        <a href="/portal">:: rfi_observation_portal ><a/>
+    </div>
+    <div class="urloption">
+        <a href="/catalog">:: rfi_catalog ></a>
+    </div>
+    <div class="urloption">
+        <a href="/scheduler">:: obs_scheduler [in dev] ></a>
+    </div>
+</body>
+<script>
+    function animateCursor(){
+        if (cursor.textContent == ""){
+            cursor.textContent = "_"
+            return
+        }
+        if (cursor.textContent == "_"){
+            cursor.textContent = ""
+            return
+        }
+    }
+
+    var COLORLIST = [];
+
+    var COLORSTART = [16, 32, 48];
+    var COLOREND = [10, 20, 30];
+
+    var STEPS = 100
+
+    function generateColors(){
+        COLORLIST = [];
+        for (var i = 0; i < STEPS; i++){
+            let c = []
+            for (var j = 0; j < 3; j++){
+                c.push(i * (COLOREND[j] - COLORSTART[j]) / STEPS)
             }
-		}
-	</script>
+        }
+    }
+    setInterval(animateCursor, 600)
+</script>
 </html>

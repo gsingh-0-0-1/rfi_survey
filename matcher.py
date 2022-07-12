@@ -11,6 +11,13 @@ def string2date(s):
 def date2string(d):
     return d.strftime(dtformat)
 
+def checkObs(s):
+    if "2021-00-00" in s:
+        return False
+    if "obs.finished" not in os.listdir(s):
+        return False
+    return True
+
 OBSDIR = "/mnt/buf0/obs/"
 
 SCAN = sys.argv[1]#f.read()
@@ -38,7 +45,7 @@ for ant in ants:
             options.append(base + ":" + val)
 
         full_glob = glob.glob(OBSDIR + "*-*-*-*:*:*/")
-        datelist = [string2date(el.replace(OBSDIR, "").replace("/", "")) for el in full_glob if "2021-00-00" not in el]
+        datelist = [string2date(el.replace(OBSDIR, "").replace("/", "")) for el in full_glob if checkObs(el)]
 
         matched_obs = date2string(min(datelist, key = lambda d : abs(d - ephem_dt)))
 

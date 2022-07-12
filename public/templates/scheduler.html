@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300&display=swap" rel="stylesheet">
+    <title>ATA RFI Obs Scheduler</title>
+    <style>
+        body{
+            background-color: rgb(16, 32, 48);
+        }
+
+        #titletext{
+            margin-top: 2%;
+            position: relative;
+            left: 2%;
+            font-size: 6vh;
+            color: #eee;
+            font-family: Source Code Pro;
+        }
+
+        #cursor{
+            color: #6f6;
+        }
+
+        .urloption{
+            margin-top: 2%;
+            position: relative;
+            left: 10%;
+            font-size: 5vh;
+            color: #aaa;
+            font-family: Source Code Pro;
+        }
+
+        a{
+            color: inherit;
+            text-decoration: none;
+        }
+
+        a:hover{
+            font-weight: bold;
+        }
+
+        .forminput{
+            background-color: #0000;
+            border: none;
+            border-bottom: 0.1vh solid white;
+            font-family: Source Code Pro;
+            color: white;
+            font-size: 5vh;
+            width: 20%;
+        }
+
+        .forminput:focus{
+            outline: none;
+        }
+        
+        #cfreq{
+            width: 17%;
+        }
+    </style>
+</head>
+<body>
+    <div id="titletext">
+        obs-user@obs_scheduler:/home$<span id="cursor">_</span>
+    </div>
+    <div class="urloption">
+        :: schedule obs > 
+        <input type='text' class='forminput' id='cfreq' placeholder='CFREQ (MHZ)'> >
+        <input type='password' class='forminput' id='authkey' placeholder='AUTH KEY'>
+    </div>
+    <div class="urloption">
+        :: current schedule:
+    </div>
+</body>
+<script>
+    function animateCursor(){
+        if (cursor.textContent == ""){
+            cursor.textContent = "_"
+            return
+        }
+        if (cursor.textContent == "_"){
+            cursor.textContent = ""
+            return
+        }
+    }
+
+    function fetchQueue(){
+        var req = new XMLHttpRequest;
+        req.open("GET", "/obsqueue")
+        req.send()
+        req.onreadystatechange = function(){
+            if (this.readyState == 4 && this.status == 200){
+                var data = this.responseText.split("\n").filter(el => el != "")
+                n = 1
+                for (var el of data){
+                    var spl = el.split(",")
+                    var cfreq = spl[0]
+                    var name = spl[1]
+                    var row = document.createElement('div')
+                    row.classList.add("urloption")
+                    row.innerHTML = "--" + n + " Obs @ " + cfreq + " MHz by " + name
+                    if (n == 1){
+                        row.style.color = "#8e8"
+                    }
+                    document.body.appendChild(row)
+                    n = n + 1
+                }
+            }
+        }
+    }
+
+    fetchQueue()
+    setInterval(animateCursor, 600)
+</script>
+</html>

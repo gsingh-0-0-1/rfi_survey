@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300&display=swap" rel="stylesheet">
+    <title></title>
+    <style>
+        body{
+            background-color: rgb(16, 32, 48);
+        }
+
+        #titletext{
+            margin-top: 1%;
+            position: relative;
+            left: 2%;
+            font-size: 6vh;
+            color: #eee;
+            font-family: Source Code Pro;
+            display: inline-block;
+        }
+
+        #cursor{
+            color: #6f6;
+        }
+
+        .urloption{
+            margin-top: 2%;
+            position: relative;
+            left: 10%;
+            font-size: 5vh;
+            color: #aaa;
+            font-family: Source Code Pro;
+        }
+
+        a{
+            color: inherit;
+            text-decoration: none;
+        }
+
+        a:hover{
+            font-weight: bold;
+        }
+
+        /*Checkboxes styles*/
+        input[type="checkbox"] { display: none; }
+
+        input[type="checkbox"] + label {
+            display: block;
+            position: relative;
+            padding-left: 35px;
+            margin-bottom: 20px;
+            color: #ddd;
+            cursor: pointer;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        input[type="checkbox"] + label:last-child { margin-bottom: 0; }
+
+        input[type="checkbox"] + label:before {
+            content: '';
+            display: block;
+            width: 20px;
+            height: 20px;
+            border: 1px solid #6cc0e5;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: .6;
+            -webkit-transition: all .12s, border-color .08s;
+            transition: all .12s, border-color .08s;
+        }
+
+        input[type="checkbox"]:checked + label:before {
+            width: 10px;
+            top: -5px;
+            left: 5px;
+            border-radius: 0;
+            opacity: 1;
+            border-top-color: transparent;
+            border-left-color: transparent;
+            -webkit-transform: rotate(45deg);
+            transform: rotate(45deg);
+        }
+
+        #flagobs{
+            position: fixed;
+            top: 5%;
+            right: 10%;
+            font-family: Source Code Pro;
+            border: none;
+            color: white;
+            background-color: rgb(16, 32, 48);
+            box-sizing: border-box;
+            width: 15%;
+            padding: 1vh 1vh;
+            font-size: 4vh;
+        }
+
+        #flagobs:focus{
+            outline: none
+        }
+
+        #flagname{
+            position: fixed;
+            top: 20%;
+            right: 10%;
+            font-family: Source Code Pro;
+            border: none;
+            background-color: #345;
+            color: white;
+            width: 15%;
+            box-sizing: border-box;
+        }
+
+        #flagname:focus{
+            outline: none;
+        }
+
+        #flagform{
+            table-layout: fixed;
+            border-collapse: collapse;
+            position: fixed;
+            right: 5%;
+            top: 5%;
+            width: 20%;
+        }
+
+        #flagform tr{
+            padding-top: 1vh;
+            padding-bottom: 1vh;
+        }
+
+        #flagform tr:nth-child(2n){
+            height: 10vh;
+        }
+
+        #flagform tr:nth-child(2n + 1){
+        }
+
+        #flagform td{
+            width: 100%;
+            border: 1px solid white;
+        }
+    </style>
+</head>
+<body>
+    <div id="titletext"><span id="cursor">_</span>
+    </div>
+
+                    <button id="flagobs" onclick="changeFlag()"></button>
+                    <input type='text' id='flagname' placeholder='Your Name'>
+
+    <div class="urloption">
+        <a target="_blank" class="url" id="heatmaps" href="">:: sky_heatmaps ><a/>
+    </div>
+    <div class="urloption">
+        <a target="_blank" class="url" id="waterfall" href="">:: waterfall ></a>
+    </div>
+    <div class="urloption">
+        <a target="_blank" class="url" id="files" href="">:: directory listing ></a>
+    </div>
+
+</body>
+<script>
+    var url = window.location.href.split("/")
+    var obs = url[url.length - 1]
+    document.title = obs
+    titletext.innerHTML = "./obs/" + obs + titletext.innerHTML
+
+    for (var element of document.getElementsByClassName("url")){
+        element.href = window.location.pathname + "/" + element.id
+    }
+
+    function animateCursor(){
+        if (cursor.innerHTML == "&nbsp;"){
+            cursor.textContent = "_"
+            return
+        }
+        if (cursor.textContent == "_"){
+            cursor.innerHTML = "&nbsp;"
+            return
+        }
+    }
+
+    function invertFlag(flag){
+        if (flag == "0"){
+            return "1"
+        }
+        if (flag == "1"){
+            return "0"
+        }
+    }
+
+    var FLAGSTATUS = ''
+    function fetchFlag(){
+        var flagreq = new XMLHttpRequest;
+        flagreq.open("GET", "/getflag/" + obs)
+        flagreq.send()
+        flagreq.onreadystatechange = function(){
+            if (this.readyState == 4 && this.status == 200){
+                FLAGSTATUS = this.responseText
+                if (this.responseText == "0"){
+                    flagobs.textContent = "UNFLAGGED"
+                    flagobs.style.backgroundColor = "#88e"
+                }
+                if (this.responseText == "1"){
+                    flagobs.textContent = "FLAGGED"
+                    flagobs.style.backgroundColor = "#e88"
+                }
+            }
+        }
+    }
+
+    function changeFlag(){
+        var name = flagname.value
+        if (name == ""){
+            name = "none"
+        }
+        var req = new XMLHttpRequest;
+        req.open("GET", "/setobsflag/" + obs + "/" + invertFlag(FLAGSTATUS) + "/" + name)
+        req.send()
+        req.onreadystatechange = function(){
+            if (this.readyState == 4 && this.status == 200){
+                fetchFlag() 
+            }
+        }
+    }
+
+    fetchFlag()
+    setInterval(animateCursor, 600)
+</script>
+</html>

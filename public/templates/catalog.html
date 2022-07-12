@@ -379,10 +379,10 @@
         query_items.push(item)
 
         if (startdate.value.replaceAll(" ", "") != ""){
-            query_items.push("replace(replace(obs<cm>'-'<cm>'')<cm>'<cl>'<cm>''),>,'" + startdate.value.replaceAll("-", "").replaceAll(":", "") + "000000'")
+            query_items.push("replace(replace(obs<cm>'-'<cm>'')<cm>'<cl>'<cm>''),>=,'" + startdate.value.replaceAll("-", "").replaceAll(":", "") + "000000'")
         }
         if (enddate.value.replaceAll(" ", "") != ""){
-            query_items.push("replace(replace(obs<cm>'-'<cm>'')<cm>'<cl>'<cm>''),<,'" + enddate.value.replaceAll("-", "").replaceAll(":", "") + "000000'")
+            query_items.push("replace(replace(obs<cm>'-'<cm>'')<cm>'<cl>'<cm>''),<=,'" + enddate.value.replaceAll("-", "").replaceAll(":", "") + "000000'")
         }
 
         //put everything else together
@@ -466,7 +466,7 @@
                     row.innerHTML += "<td>" + spl[7] + "</td>"
 
                     //now the url
-                    row.innerHTML += "<td><a href='/main?obs=" + spl[0] + "&freq=" + spl[4].replace(" ", "") + "' target='_blank'>View in portal --></a></td>"
+                    row.innerHTML += "<td><a href='/scanobs/" + spl[0] + "/heatmaps?freq=" + spl[4].replace(" ", "") + "' target='_blank'>View in portal --></a></td>"
                     //give the table row alternating background colors based on the observation
                     if (row.children[1].textContent != tbody.children[tbody.children.length - 1].children[1].textContent){
                         ROWCOLOR = getRowColor(ROWCOLOR)

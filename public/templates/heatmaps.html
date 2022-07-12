@@ -235,7 +235,7 @@
     lrreq.send()
     lrreq.onreadystatechange = function(){
         if (this.readyState == 4 && this.status == 200){
-	        var scan = url.searchParams.get("obs")
+	        var scan = window.location.pathname.replace("scanobs", "").replace("heatmaps", "").replaceAll("/", "")
             if (scan != undefined){
                 LAST_SCAN = scan
             }
