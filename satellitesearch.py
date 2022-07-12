@@ -7,11 +7,11 @@ import os
 import sys
 import shutil
 from fetchTLE import fetchTLE
-from dateutils import string2date, date2string
+from utils.dateutils import string2date, date2string
 from skyfield.api import EarthSatellite
 from skyfield.api import load, wgs84
 import sqlite3
-from colors import bcolors
+from utils.colors import bcolors
 
 TLEdir = "./TLEdata/"
 JULIAN_0_IN_UNIX = 2440587.5
@@ -65,7 +65,7 @@ def generateSatelliteData(timestamp):
 
     data = [el for el in data.split("\n") if el != ""]
     if len(data) == 0:
-        print("TLE file contains no data. If this file was just downloaded, it is possible this observation is too old and the TLE failed to properly generate.")
+        print(bcolors.FAIL + "TLE file contains no data. If this file was just downloaded, it is possible this observation is too old and the TLE failed to properly generate." + bcolors.ENDC)
         sys.exit()
     nsats = len(data) / 3
     #len(data) should be a multiple of 3 since there are three lines per satellite

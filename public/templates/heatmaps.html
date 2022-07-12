@@ -108,6 +108,23 @@
         }
     }
 
+    function correctImages(){
+        for (var freq of FREQLIST){
+            var img = document.getElementById("im_" + freq)
+            var origheight = img.height
+            var origwidth = img.width
+
+            img.height = origheight
+            img.width = origwidth
+
+            if (img.height > window.innerHeight){
+                let ratio = window.innerHeight / origheight
+                img.height = origheight * ratio
+                img.width = origwidth * ratio
+            }
+        }
+    }
+
     function fetchImages(){
         for (var freq of FREQLIST){
             var img = document.createElement('img')
@@ -118,8 +135,21 @@
 
             img.id = "im_" + freq
             document.body.appendChild(img)
-            img.width = String(1 * window.innerWidth / 2)
+            img.clientWidth = String(1 * window.innerWidth / 2)
             img.style.transform = "translate(-50%, -50%)"
+            img.onload = function(){
+                var origheight = this.height
+                var origwidth = this.width
+
+                this.height = origheight
+                this.width = origwidth
+
+                if (this.height > window.innerHeight){
+                    let ratio = window.innerHeight / origheight
+                    this.height = origheight * ratio
+                    this.width = origwidth * ratio
+                } 
+            }
 
             var comb = document.createElement('img')
             comb.src = OBSFREQS[freq][0].replace(".png", "_combined.png")
@@ -143,6 +173,9 @@
             fslider.value = url.searchParams.get("freq")
             sliderValChange()
         }
+        setTimeout(function(){
+            //correctImages()
+        }, 1000)
     }
     
     FREQLIST = []

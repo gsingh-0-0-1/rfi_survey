@@ -3,7 +3,7 @@ import sqlite3
 import sys
 import os
 import time
-from colors import bcolors
+from utils.colors import bcolors
 
 def createClusters(seq):
     clusters = []

@@ -31,7 +31,10 @@ els = []
 dummy = [els.append(float(el[1])) for el in info if float(el[1]) not in els]
 els.sort()
 els = [str(el) for el in els]
-spacing = abs(float(els[1]) - float(els[0])) / 2
+if len(els) == 1:
+    spacing = 2.5
+else:
+    spacing = abs(float(els[1]) - float(els[0])) / 2
 
 antlos = []
 dummy = [antlos.append(el[2]) for el in info if el[2] not in antlos]
@@ -57,7 +60,9 @@ NGRAPHS = len(antlos)# + 1
 layouts = {1 : [1, 1],
         2 : [1, 2],
         3 : [2, 2],
-        4 : [2, 2]
+        4 : [2, 2],
+        5 : [3, 2],
+        6 : [3, 2],
         }
 
 NROWS = layouts[NGRAPHS][0]
@@ -108,7 +113,7 @@ for freq in freqs:
             TS = TS + ts
             N += 1
             z = np.array([ts, ts]).T
-
+            
             rad = [float(el) - spacing / 2, float(el) + spacing / 2]
             a = np.linspace(0, 2 * np.pi, ts.shape[0])
 

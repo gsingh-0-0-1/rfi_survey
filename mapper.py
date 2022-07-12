@@ -8,7 +8,9 @@ import scipy.signal
 import sqlite3
 import matplotlib.pyplot as plt
 import datetime
-from dateutils import date2string, string2date
+from utils.dateutils import date2string, string2date
+
+print("Beginning obs mapping...")
 
 def downsample(l, f):
     if f == 1:
@@ -107,7 +109,7 @@ for ant in antlo_list:
 
         print("Sample delay", sample_delay)
 
-        block = 10 * np.log10(filfile.read_block(sample_delay, NSAMPS - sample_delay))
+        block = 10*np.log10(filfile.read_block(sample_delay, NSAMPS - sample_delay))
         '''
         if REFERENCE_MEDIAN is not None:
             thismedian = np.median(block, axis = 1)
@@ -161,7 +163,7 @@ for ant in antlo_list:
             start = int(start)
             end = int(end)
 
-            ts = 10 * np.log10(block[start:end].mean(axis = 0))
+            ts = block[start:end].mean(axis = 0)
 
             FCENTER = FCH1 - (0.25 * (start + end) / 2)
             

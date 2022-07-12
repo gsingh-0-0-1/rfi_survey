@@ -3,7 +3,7 @@ import os
 import sys
 import shutil
 import sqlite3
-from colors import bcolors
+from utils.colors import bcolors
 
 OBSDIR = "./obs/"
 

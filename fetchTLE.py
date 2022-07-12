@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import datetime
-from dateutils import date2string, string2date
+from utils.dateutils import date2string, string2date
 import sys
 
 def generateLink(timestamp):
