@@ -52,7 +52,8 @@ plt.rcParams.update({'text.color': "white",
                      "xtick.color" : "w",
                      "ytick.color" : "w"})
 
-REFERENCE_MEDIAN = None
+#this is -60 dB - 10 * log10(10 ** -6) = -60
+REFERENCE_MEDIAN = None#10 ** -6
 
 for ant in antlo_list:
     matchfile = open(ephemdir + ant + "/matches.txt")
@@ -106,19 +107,17 @@ for ant in antlo_list:
 
         print("Sample delay", sample_delay)
 
-        block = filfile.read_block(sample_delay, NSAMPS - sample_delay)
-
+        block = 10 * np.log10(filfile.read_block(sample_delay, NSAMPS - sample_delay))
+        '''
         if REFERENCE_MEDIAN is not None:
             thismedian = np.median(block, axis = 1)
             diff = thismedian - REFERENCE_MEDIAN
-            print(thismedian, REFERENCE_MEDIAN)
+            print(np.mean(diff), np.median(diff))
             block = block - diff[:, np.newaxis]
-            print(np.median(block, axis = 1), REFERENCE_MEDIAN)
 
         if REFERENCE_MEDIAN is None:
             REFERENCE_MEDIAN = np.median(block, axis = 1)
-
-
+        '''
         ELEVS = np.unique(ephemdata[:, 2])
         elev_samples = {}
         for elev in ELEVS:
@@ -130,7 +129,7 @@ for ant in antlo_list:
         #we're going to create an image for each elevation
         for elev in elev_samples.keys():
             sample_pair = elev_samples[elev]
-            sub_block = 10 * np.log10(block[:, sample_pair[0]:sample_pair[1]])
+            sub_block = block[:, sample_pair[0]:sample_pair[1]]
             #spectrum = 10 * np.log10(sub_block.mean(axis = 1))
             #plt.plot(np.arange(FCH1, FCH1 - 1024, -0.25), spectrum, color = "blue")
             f_extent = [FCH1, FCH1 - 1024]

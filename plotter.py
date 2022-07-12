@@ -65,6 +65,9 @@ NCOLS = layouts[NGRAPHS][1]
 
 TITLE_FSIZE = 18
 
+MIN_POWER = -80
+MAX_POWER = -30
+
 def initPlot():
     plt.figure(figsize = (9 * NCOLS, 9 * NROWS))
 
@@ -113,7 +116,7 @@ for freq in freqs:
             
             #sys.exit()
             plt.subplot(NROWS, NCOLS, ind + 1, projection = 'polar')
-            plt.pcolormesh(th, r, z, vmin = -80, vmax=-30)
+            plt.pcolormesh(th, r, z, vmin = MIN_POWER, vmax = MAX_POWER)
         
         TS = TS / N
         Z = np.array([TS, TS]).T
@@ -151,7 +154,7 @@ for freq in freqs:
 
         r, th = np.meshgrid(rad, a)
 
-        plt.pcolormesh(th, r, ts, vmin = -80, vmax = -30)
+        plt.pcolormesh(th, r, ts, vmin = MIN_POWER, vmax = MAX_POWER)
     
 
     plt.title("CFREQ " + str(freq) + " | BW " + str(IMG_BW) + " | MHz, Combined")

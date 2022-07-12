@@ -113,6 +113,7 @@
             color: white;
             width: 15%;
             box-sizing: border-box;
+            padding: 1vh 1vh;
         }
 
         #flagname:focus{
@@ -195,18 +196,21 @@
     }
 
     var FLAGSTATUS = ''
+    var FLAGNAME = ''
     function fetchFlag(){
         var flagreq = new XMLHttpRequest;
         flagreq.open("GET", "/getflag/" + obs)
         flagreq.send()
         flagreq.onreadystatechange = function(){
             if (this.readyState == 4 && this.status == 200){
-                FLAGSTATUS = this.responseText
-                if (this.responseText == "0"){
+                var spl = this.responseText.split(",")
+                FLAGSTATUS = spl[0]
+                FLAGNAME = spl[1]
+                if (FLAGSTATUS == "0"){
                     flagobs.textContent = "UNFLAGGED"
                     flagobs.style.backgroundColor = "#88e"
                 }
-                if (this.responseText == "1"){
+                if (FLAGSTATUS == "1"){
                     flagobs.textContent = "FLAGGED"
                     flagobs.style.backgroundColor = "#e88"
                 }
