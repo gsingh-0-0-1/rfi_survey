@@ -108,6 +108,8 @@ ANT_INIT_ELEVS = [ant_elevs[ant][0] for ant in ant_list]
 
 steps = 60
 
+el_spacing = ant_elevs[ant_list[0]][1] - ant_elevs[ant_list[0]][0]
+
 ata_control.reserve_antennas(ant_list)
 atexit.register(ata_control.release_antennas, ant_list, False)
 
@@ -142,7 +144,7 @@ for freq in freq_list:
         FULL_EPHEM[ant] = None
 
     grace_time = 120
-    spacing_time = 6
+    spacing_time = el_spacing
     
     t_start = time.time()
     t_start += 37

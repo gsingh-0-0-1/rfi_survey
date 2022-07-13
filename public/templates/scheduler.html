@@ -110,7 +110,20 @@
         }
     }
 
+    function submitObsReq(){
+        var req = new XMLHttpRequest;
+        req.open("GET", "/addobs/" + authkey.value + "/" + cfreq.value)
+        req.send()
+        window.location.reload()
+    }
+
     fetchQueue()
     setInterval(animateCursor, 600)
+    
+    document.onkeydown = function(e){
+        if (e.keyCode == 13){
+            submitObsReq()
+        }
+    }
 </script>
 </html>

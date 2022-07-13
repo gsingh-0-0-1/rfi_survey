@@ -95,7 +95,6 @@ function checkLegalOp(o){
     if (LEGAL_OPS.includes(o)){
         return true;
     }
-    console.log(o)
     return false;
 }
 
@@ -105,7 +104,6 @@ function checkLegalVal(v){
             return false;
         }
     }
-    console.log(v)
     return true;
 }
 
@@ -130,8 +128,18 @@ function writeObsStarted(id, freq, name){
     writeObsId(id, freq, name)
 }
 
+function readQueue(){
+    return fs.readFileSync(QUEUE_FNAME, {encoding: 'utf-8', flag: 'r'})
+}
+
 function addToQueue(id, cfreq, name){
-    fs.appendFileSync(QUEUE_FNAME, id + "," + cfreq + "," + name + "\n")
+    var newline = id + "," + cfreq + "," + name + "\n"
+    if (name == "SYSTEM_OBS"){
+        fs.writeFileSync(QUEUE_FNAME, newline + readQueue())
+    }
+    else{
+        fs.appendFileSync(QUEUE_FNAME, newline)
+    }
 }
 
 function isObsRunning(){
@@ -150,7 +158,7 @@ function checkAndStartObs(){
     if (isObsRunning()){
         return
     }
-    var queuedata = fs.readFileSync(QUEUE_FNAME, {encoding: 'utf-8', flag: 'r'})
+    var queuedata = readQueue()//fs.readFileSync(QUEUE_FNAME, {encoding: 'utf-8', flag: 'r'})
     var queuedata = queuedata.split("\n").filter(el => el != "")
 
     if (queuedata.length == 0){
@@ -167,7 +175,7 @@ function checkAndStartObs(){
     writeObsStarted(thisobsid, thisobsfreq, thisobsname)
 
     console.log("starting obs " + thisobsid)
-    proc = child_process.spawn("python", ["startobs.py", String(thisobsid)], {detached: true}, (error, stdout, stderr) => {
+    proc = child_process.spawn("python", ["startobs.py", String(thisobsid), thisobsfreq], {detached: true}, (error, stdout, stderr) => {
         if (error) {
             console.error(`error: ${error.message}`);
             return;
@@ -221,9 +229,9 @@ app.get("/obslist/:flo/:fhi/:dstart/:dend", (req, res) => {
 
     query_command = query_command + query_items.join(" and ")
 
-    query_command = query_command + " limit 100"
+    query_command = query_command + " order by replace(replace(obs,':',''),'-','') DESC "
 
-    console.log(query_command)
+    query_command = query_command + " limit 100"
 
     var run = obsdb.all(query_command, (err, rows) => {
         if (err){
@@ -274,7 +282,6 @@ app.get("/scanobs/:obs/:option", (req, res) => {
 
 app.get("/getflag/:obs", (req, res) => {
     var command = "select flagged, name from obsdata where obs='" + req.params.obs + "'"
-    console.log(command)
     var run = obsdb.all(command, (err, rows) =>{
         if (err){
             console.log(err)
@@ -310,7 +317,6 @@ app.get("/setobsflag/:obs/:flag/:name", (req, res) => {
     }
 
     if (!/^[a-zA-Z]+$/.test(name) && flag == "1" ){
-        console.log(name)
         res.send("Invalid name")
         return
     }
@@ -350,40 +356,31 @@ app.get("/query/:query", (req, res) => {
         searchparams[i] = searchparams[i].split(",")
     }
 
-    console.log(searchparams)
-
     var sortparams = query[1].split(",")
     var limitnum = query[2]
-
-    console.log(sortparams)
-    console.log(limitnum)
 
     var legal = true;
 
     for (var param of searchparams){
         if (param.length != 3){
             legal = false;
-            console.log("check 1 failed", param)
         }
         var key = param[0]
         var op = param[1]
         var val = param[2]
         if (!checkLegalKey(key) || !checkLegalOp(op) || !checkLegalVal(val)){
             legal = false;
-            console.log("check 2 failed", key, op, val)
         }
     }
 
     //we should be sorting by a legal key
     if (!checkLegalKey(sortparams[0])){
         legal = false;
-        console.log("check 3 failed", sortparams[0])
     }
 
     //sort setting can either be ASC or DESC
     if (sortparams[1] != "ASC" && sortparams[1] != "DESC"){
         legal = false;
-        console.log("check 4 failed", sortparams[1])
     }
 
     if (isNaN(limitnum)){
@@ -421,12 +418,6 @@ app.get("/query/:query", (req, res) => {
     query_command = query_command + " " + searchparams
     query_command = query_command + " ORDER BY " + sortparams[0] + " " + sortparams[1]
     query_command = query_command + " LIMIT " + limitnum
-    console.log(query_command)
-    //res.send("OK")
-    //return
-    //account for slashes
-
-    //console.log(query)
 
     var run = rfidb.all(query_command, (err, rows) => {
         if (err){
@@ -450,7 +441,6 @@ app.get("/query/:query", (req, res) => {
 app.get("/addobs/:key/:cfreq", (req, res) => {
     var key = req.params.key
     if (ADMIN_KEYS.includes(key)){
-        res.send("OK")
     }
     else{
         res.send("FAIL")
@@ -459,6 +449,11 @@ app.get("/addobs/:key/:cfreq", (req, res) => {
 
     var cfreq = req.params.cfreq
 
+    if (isNaN(cfreq)){
+        res.send("fail")
+        return
+    }
+    
     var thisobsid = Date.now()
 
     var name = ADMIN_NAMES[ADMIN_KEYS.indexOf(key)]
@@ -466,6 +461,7 @@ app.get("/addobs/:key/:cfreq", (req, res) => {
     addToQueue(thisobsid, cfreq, name)
 
     checkAndStartObs()
+    res.send("OK")
 })
 
 app.get("/endobs/:id", (req, res) => {

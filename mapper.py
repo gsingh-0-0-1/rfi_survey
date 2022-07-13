@@ -110,16 +110,15 @@ for ant in antlo_list:
         print("Sample delay", sample_delay)
 
         block = 10*np.log10(filfile.read_block(sample_delay, NSAMPS - sample_delay))
-        '''
+        
         if REFERENCE_MEDIAN is not None:
             thismedian = np.median(block, axis = 1)
             diff = thismedian - REFERENCE_MEDIAN
-            print(np.mean(diff), np.median(diff))
             block = block - diff[:, np.newaxis]
 
         if REFERENCE_MEDIAN is None:
             REFERENCE_MEDIAN = np.median(block, axis = 1)
-        '''
+        
         ELEVS = np.unique(ephemdata[:, 2])
         elev_samples = {}
         for elev in ELEVS:
