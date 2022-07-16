@@ -32,7 +32,6 @@ DBNAME = "rfisources.db"
 MIN_DEV = 1
 THRESH = 3
 PREC = 3
-
 datafiles = [el for el in os.listdir(obsdir) if "datafile" in el]
 
 for datafile in datafiles:
@@ -62,7 +61,7 @@ for datafile in datafiles:
         db = sqlite3.connect(DBNAME)
         cur = db.cursor()
         try:
-            cur.execute("INSERT INTO rfisources VALUES ('" + SCAN + "', " + str(start) + ", " + str(end) + ", " + str(ELEV) + ", " + str(FCEN) + ", " + str(exceed) + ", '" + ANTLO + "', NULL, NULL, NULL)")
+            cur.execute("INSERT INTO rfisources (obs, start_az, end_az, elev, cfreq, exceed, antlo) VALUES ('" + SCAN + "', " + str(start) + ", " + str(end) + ", " + str(ELEV) + ", " + str(FCEN) + ", " + str(exceed) + ", '" + ANTLO + "')")
         except sqlite3.IntegrityError:
             print("\t" + bcolors.WARNING + "HIT ALREADY IN SQL DATABASE" + bcolors.ENDC)
         db.commit()

@@ -46,7 +46,7 @@ invr = 2.55e-5
 
 count = 1
 
-swivel_tspan = 360 #seconds
+swivel_tspan = 864 #seconds
 
 def maketimestamp():
     tnow = list(datetime.datetime.now().timetuple())[:6]
@@ -144,7 +144,7 @@ for freq in freq_list:
         FULL_EPHEM[ant] = None
 
     grace_time = 120
-    spacing_time = el_spacing
+    spacing_time = el_spacing * 1.5
     
     t_start = time.time()
     t_start += 37

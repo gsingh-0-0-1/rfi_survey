@@ -27,7 +27,7 @@ IGNORE_LIST = [
 def generateUpdateCommand(obs, start_az, end_az, elev, antlo, source, source_az, source_el):
     if source != "NULL":
         source = "'" + source + "'"
-    command = "update rfisources set source = " + source + ",source_az = " + str(source_az) + ", source_el = " + str(source_el) + " where obs='" + obs + "' and start_az=" + str(start_az) + " and end_az=" + str(end_az) + " and elev=" + str(elev) + " and antlo='" + antlo + "'"
+    command = "update rfisources set source_sat = " + source + ",source_sat_az = " + str(source_az) + ", source_sat_el = " + str(source_el) + " where obs='" + obs + "' and start_az=" + str(start_az) + " and end_az=" + str(end_az) + " and elev=" + str(elev) + " and antlo='" + antlo + "'"
     return command
 
 def checkIgnoreSatellite(name):

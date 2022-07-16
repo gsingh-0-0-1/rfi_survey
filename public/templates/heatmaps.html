@@ -144,11 +144,21 @@
                 this.height = origheight
                 this.width = origwidth
 
+                var ratio = 1;
+
                 if (this.height > window.innerHeight){
-                    let ratio = window.innerHeight / origheight
-                    this.height = origheight * ratio
-                    this.width = origwidth * ratio
-                } 
+                    console.log("correcting", this.id, this.height, window.innerHeight)
+                    ratio = window.innerHeight / origheight
+                }
+
+                this.height = origheight * ratio
+                this.width = origwidth * ratio
+
+                if (this.width > (window.innerWidth / 2)){
+                    ratio = (window.innerWidth / 2) / this.width
+                }
+                this.height = origheight * ratio
+                this.width = origwidth * ratio
             }
 
             var comb = document.createElement('img')

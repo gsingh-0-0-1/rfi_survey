@@ -3,6 +3,7 @@ const bodyParser = require('body-parser')
 var fs = require('fs');
 const {URLSearchParams} = require('url')
 const sqlite3 = require('sqlite3')
+const sqlite3_sync = require("better-sqlite3");
 const request = require('request')
 
 const child_process = require('child_process');
@@ -23,6 +24,11 @@ var RFIDBNAME = "rfisources.db"
 var DIR = '/home/obsuser/gsingh/rfi_survey/'
 var OBSDIR = DIR + "obs/"
 
+var NRDZ_DIRECTORY = "/mnt/datab-netStorage-40G/visualize/plots/HCRO-NRDZ-CHIME/"
+var NRDZ_F_LO = 410
+var NRDZ_F_HI = 1790
+var NRDZ_FSTEP = 20
+
 app.use("/public", express.static(DIR + 'public'));
 app.use("/obs", express.static(DIR + 'obs'));
 app.use("/obs", serveIndex(DIR + 'obs'));
@@ -31,6 +37,8 @@ process.env.TZ = "America/Los_Angeles"
 
 var obsdb = new sqlite3.Database(OBSDBNAME)
 var rfidb = new sqlite3.Database(RFIDBNAME)
+var rfidb_sync = new sqlite3_sync(RFIDBNAME)
+var obsdb_sync = new sqlite3_sync(OBSDBNAME)
 
 var modobs = "replace(replace(obs,':',''),'-','')"
 
@@ -175,17 +183,20 @@ function checkAndStartObs(){
     writeObsStarted(thisobsid, thisobsfreq, thisobsname)
 
     console.log("starting obs " + thisobsid)
-    proc = child_process.spawn("python", ["startobs.py", String(thisobsid), thisobsfreq], {detached: true}, (error, stdout, stderr) => {
+    proc = child_process.exec("python startobs.py " + String(thisobsid) + " " + thisobsfreq, {detached: true}, (error, stdout, stderr) => {
         if (error) {
+            fs.appendFileSync("errlog.txt", error.message)
             console.error(`error: ${error.message}`);
             return;
         }
 
         if (stderr) {
+            fs.appendFileSync("errlog.txt", stderr)
             console.error(`stderr: ${stderr}`);
             return;
         }
 
+        fs.appendFileSync("errlog.txt", stdout)
         console.log(`stdout:\n${stdout}`);
     })
 
@@ -231,7 +242,7 @@ app.get("/obslist/:flo/:fhi/:dstart/:dend", (req, res) => {
 
     query_command = query_command + " order by replace(replace(obs,':',''),'-','') DESC "
 
-    query_command = query_command + " limit 100"
+    query_command = query_command + " limit 300"
 
     var run = obsdb.all(query_command, (err, rows) => {
         if (err){
@@ -252,6 +263,54 @@ app.get("/obslist/:flo/:fhi/:dstart/:dend", (req, res) => {
     })
 })
 
+app.get("/specoccdata/:freq/:bw", (req, res) => {
+    var freq = req.params.freq
+    var bw = req.params.bw
+
+    if (isNaN(freq) || isNaN(bw) || bw > 50){
+        res.send("Invalid request")
+        return
+    }
+
+    freq = freq * 1
+    bw = bw * 1
+
+    var flo = freq - (bw / 2)
+    var fhi = freq + (bw / 2)
+
+    query_command = "select start_az, end_az, elev from rfisources where cfreq >= " + flo + " and cfreq <= " + fhi
+    /*var run = rfidb.all(query_command, (err, rows) => {
+        if (err){
+            console.log(err)
+        }
+        if (rows == undefined){
+            res.send("error")
+            return
+        }
+        var resp = ''
+        for (var row of rows){
+            resp = resp + row["start_az"] + "," + row["end_az"] + "," + row["elev"] + "\n"
+        }
+        res.send(resp)
+    })*/
+    var data = rfidb_sync.prepare(query_command).all()
+    var resp = ''
+    for (var row of data){
+        resp = resp + Math.round((row["start_az"] + row["end_az"]) / 2) + "," + row["elev"] + "\n"
+    }
+
+    var obsflo = freq - 336
+    var obsfhi = freq + 336
+
+    var totalobs = obsdb_sync.prepare("select distinct obs from obsdata where cfreq >= " + obsflo + " and cfreq <= " + obsfhi).all()
+    var n_obs = totalobs.length
+    res.send(n_obs + "|" + resp)
+})
+
+app.get("/dev/:item", (req, res) => {
+    res.sendFile("public/dev/" + req.params.item + ".html", {root: __dirname})
+})
+
 app.get("/", (req, res) => {
     res.sendFile("public/templates/landing.html", {root: __dirname})
 })
@@ -268,6 +327,10 @@ app.get("/scheduler", (req, res) => {
     res.sendFile("public/templates/scheduler.html", {root: __dirname})
 })
 
+app.get("/specocc/:freq?/:bw?", (req, res) => {
+    res.sendFile("public/templates/specocc.html", {root: __dirname})
+})
+
 app.get("/scanobs/:obs", (req, res) => {
     res.sendFile("public/templates/scanobs.html", {root: __dirname})
 })
@@ -278,6 +341,36 @@ app.get("/scanobs/:obs/files", (req, res) => {
 
 app.get("/scanobs/:obs/:option", (req, res) => {
     res.sendFile("public/templates/" + req.params.option + ".html", {root: __dirname})
+})
+
+app.get("/nrdzscanlist/:dlo/:dhi", (req, res) => {
+    var l = fs.readdirSync(NRDZ_DIRECTORY + NRDZ_F_LO + "/spectrograms/")
+    for (let i = 0; i < l.length; i++){
+        l[i] = l[i].split("D")[1].replace("T", "").split("M")[0]
+    }
+    res.send(l.join("\n"))
+})
+
+app.get("/nrdzscans", (req, res) => {
+    res.sendFile("public/templates/nrdz/portal.html", {root: __dirname})
+})
+
+app.get("/nrdzscan/:obs", (req, res) => {
+    res.sendFile("public/templates/nrdz/nrdzscan.html", {root: __dirname})
+})
+
+app.get("/nrdzscan/:obs/:option", (req, res) => {
+    res.sendFile("public/templates/nrdz/" + req.params.option + ".html", {root: __dirname}) 
+})
+
+app.get("/nrdzscan/:obs/:option/first", (req, res) => {
+    var obs = req.params.obs
+    while (obs.includes(":") || obs.includes("-")){
+        obs = obs.replace(":", "").replace("-", "")
+    }
+    var l = fs.readdirSync(NRDZ_DIRECTORY + NRDZ_F_LO + "/" + req.params.option).filter(el => el.includes(obs))
+    l.sort()
+    res.send(l[0])
 })
 
 app.get("/getflag/:obs", (req, res) => {
@@ -338,6 +431,116 @@ app.get("/setobsflag/:obs/:flag/:name", (req, res) => {
         }
     })
 
+})
+
+function correctQueryItem(item){
+    if (item == 'az'){
+        item = '0.5*(start_az + end_az)'
+    }
+    if (item == 'eaw'){
+        item = 'COS(RADIANS(elev))*(end_az-start_az)'
+    }
+    if (item == 'ant'){
+        item = 'antlo'
+    }
+    if (item == 'sat'){
+        item = 'source_sat'
+    }
+    if (item == 'el'){
+        item = 'elev'
+    }
+
+    return item
+}
+
+app.get("/querydev/:query", (req, res) => {
+    var query = req.params.query
+    var query_spl = query.split("|")
+
+    var fetch_items = query_spl[0].split(",")
+    var query_items = query_spl[1].split(":")
+    var order_by = query_spl[2]
+    var limit = query_spl[3]
+
+    var query_command = 'SELECT '
+    
+    var fetch = []
+
+    for (var fetch_item of fetch_items){
+        let item = fetch_item
+        item = correctQueryItem(item)
+        fetch.push(item)
+    }
+
+    query_command = query_command + fetch.join(", ") + " from rfisources "
+
+    var conditions = []
+
+    for (var query_item of query_items){
+        var condition = '('
+        let item = query_item.split(",").filter(el => el != "")
+        if (item.length < 2){
+            continue
+        }
+
+        item[0] = correctQueryItem(item[0])
+
+        if (item[0] == 'antlo' || item[0].includes('source')){
+            var alikes = []
+            for (let i = 1; i < item.length; i++){
+                if (item[i] == "NOTNULL"){
+                    alikes.push(item[0] + " IS NOT NULL ")
+                    continue
+                }
+                alikes.push(item[0] + " LIKE '%" + item[i] + "%'")
+            }
+            condition = condition + " " + alikes.join(" or ")
+        }
+        else{
+            var comparisons = []
+            comparisons.push(item[0] + " >= " + item[1])
+            if (item[2] != undefined){
+                comparisons.push(item[0] + " <= " + item[2])
+            }
+            condition = condition + " " + comparisons.join(" and ")
+        }
+        condition = condition + ")"
+       
+        if (condition != "()"){
+            conditions.push(condition)
+        }
+    }
+
+    conditions = conditions.join(" and ")
+    if (conditions != ""){
+        query_command = query_command + " WHERE " + conditions
+    }
+
+    order_by = order_by.split(",")
+
+    if (order_by.length != 2 || !(order_by[1] == "ASC" || order_by[1] == "DESC")){
+        console.log(order_by)
+        return
+    }
+
+    query_command = query_command + " ORDER BY " + order_by[0] + " " + order_by[1]
+
+    if (isNaN(limit)){
+        return
+    }
+
+    query_command = query_command + " LIMIT " + limit
+
+    console.log(query_command)
+    var run = rfidb.all(query_command, (err, rows) => {
+        if (err){
+            console.log(err)
+        }
+        if (rows == undefined){
+            return
+        }
+        res.send(JSON.stringify(rows))
+    })
 })
 
 app.get("/query/:query", (req, res) => {

@@ -1,0 +1,248 @@
+<html>
+	<head>
+		<title>
+			NRDZ Scan Observation Portal
+		</title>
+
+        <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300&display=swap" rel="stylesheet">
+
+		<style type="text/css">
+			body {}
+			.button {
+				background-color: var(--bcolor);
+				border: none;
+				color: white;
+				padding: 15px 24px;
+				text-align: center;
+				display: inline-block;
+				font-size: var(--fsize);
+				margin: 4px 2px;
+				cursor: pointer;
+            		}
+			.obsref{
+				transition: transform .2s ease-out;
+			}
+			.obsref:hover{
+				transform: translate(15px, 0px);
+			}
+                        ::-webkit-scrollbar {
+                                width: 10px;
+                        }
+
+                        /* Track */
+                        ::-webkit-scrollbar-track {
+                                background-image: linear-gradient(to bottom, #222, #494949);
+                        }
+
+                        /* Handle */
+                        ::-webkit-scrollbar-thumb {
+                                background: #234567;
+                        }
+
+                        /* Handle on hover */
+                        ::-webkit-scrollbar-thumb:hover {
+                                background: #345678;
+                        }
+			.linkwrap { position:relative; display:inline-block; }
+
+			.blocker { position:absolute; height:100%; width:100%; z-index:1; background:rgba(255,0,0,0.5);  }
+
+			.linkwrap iframe { z-index: 2; }
+
+            #searchdata tr td:nth-child(2n + 1){
+                text-align: right;
+            }
+
+            .forminput{
+                border: none;
+                background-color: #345;
+                color: white;
+                padding: 1vh 1vh;
+                font-family: Source Code Pro;
+            }
+
+            .forminput:focus{
+                outline: none;
+            }
+
+            .pagehref{
+                position: relative;
+                display: inline-block;
+                margin-top: 0.5%;
+                font-family: Source Code Pro;
+                color #aaa;
+                font-size: 5vh;
+                text-decoration: none;
+                background-color: #aaa;
+                color: #222;
+                padding: 0.7vh 0.7vh;
+            }
+
+            .pagehref a{
+                left: inherit;
+                color: inherit;
+                text-align: center;
+                font-family: inherit;
+                text-decoration: inherit;
+            }
+		</style>
+	<head>
+
+	<body>
+		<div id="coloring" style="position: fixed; top: 0; left: 0; z-index: -1; background-image: linear-gradient(to bottom, #123456, #507090); width: 100%; height: 100%;">
+		</div>
+
+		<div id="bigtext_title" class='pagehref' style='background-color: rgba(0, 0, 0, 0); color: #aaa;'>
+            &nbsp;NRDZ Scan Observation Portal <!--<span style="color: #afa; font-size: 20px"> [Still processing data...] </span>-->
+		</div>
+	
+        <div class="pagehref" style='background-color: rgba(0, 0, 0, 0)'>
+        </div>
+
+		<div class="pagehref" id="homebutton">
+            <a href='/'>$cd ~/home&nbsp;</a>
+        </div>
+
+        <div class="pagehref" style='background-color: rgba(0, 0, 0, 0)'>
+        </div>
+
+        <div style="position: fixed; left: 0%; top: 12%; background-image: linear-gradient(to bottom, #444499, #6a6aa9); width: 95%; height: 85%; overflow-y: scroll;" id="obslist">
+
+		</div>
+
+		<table id="searchdata" style="position: fixed; top: 35%; left: 80%; width: 30%; transform: translate(-50%, 0%); font-family: Source Code Pro; font-size: 18px; color: #aaa">
+            <tbody>
+                <tr>
+                    <td>
+                        Start Date:
+                    </td>
+                    <td>
+                        <input id="dstart" type="text" class="forminput" placeholder="YYYY-MM-DD">
+                    </td>
+                </tr>
+                    <td>
+                        End Date:
+                    </td>
+                    <td>
+                        <input id="dend" type="text" class="forminput" placeholder="YYYY-MM-DD">
+                    </td>
+                </tr>
+            <tbody>
+        </table>
+
+
+	</body>
+
+	<script type="text/javascript">
+		var url = window.location.search
+        urlParams = new URLSearchParams(url);
+		
+function createObsList(obslist, start, stop, reset=true){
+			var obslist_orig = obslist
+        	obslist = obslist.split(",");
+			obslist.sort().reverse()
+            obslist = obslist.filter(el => !el.includes("lastscan"))
+			var obscontainer = document.getElementById("obslist")
+
+			if (reset){
+				obscontainer.innerHTML = ""
+			}
+
+            var obsloadbutton = document.getElementById("obsloadbutton")
+            if (obsloadbutton){
+                obsloadbutton.remove()
+			}
+
+            for (var i = start; i < obslist.length; i++){
+                if (obslist[i] == ""){
+                    continue
+                }
+
+                if (i == stop){
+                    break
+                }
+
+                var obsname = obslist[i]
+
+                var rawobsname = obsname
+
+
+                var obs_href = "<br><div class='obsref' style='width: 45%; height: 4.5%; margin-left: 2%; display: flex; align-items: center; font-family: Source Code Pro; background-color: #234; padding-top: 1%; padding-bottom: 1%; text-indent: 2vw'><a style='color: #eee; text-decoration: none;' href='/nrdzscan/" + rawobsname + "'>" + obsname + " </a></div>"
+                obscontainer.innerHTML += obs_href
+            }
+        }
+
+        function fullInpMod(event){
+			if (event.keyCode == 13 || event.which == 13){}
+			else { return }
+			var date_inp = document.getElementById('date_input').value
+			date_inp = date_inp.replaceAll(" ", "")
+			var comp = document.getElementById('datecomp').value
+            if (comp == "on"){
+                createObsList(INIT_OBSLIST.filter(el => el.includes(date_inp)).join(","), 0, 100)
+            }
+            if (comp == "before" || comp == "after"){
+                var els = INIT_OBSLIST.filter(el => el.includes(date_inp))
+                var ind = INIT_OBSLIST.indexOf(els[0])
+                if (comp == "before"){
+                    createObsList(INIT_OBSLIST.slice(ind, INIT_OBSLIST.length).join(","), 0, 100)
+                }
+                if (comp == "after"){
+                    createObsList(INIT_OBSLIST.slice(0, ind).join(","), 0, 100)
+                }
+            }
+		}
+
+
+        var INIT_OBSLIST = []
+        
+        function fetchObsList(){
+            dstartval = dstart.value.replaceAll(" ", "")
+            dendval = dend.value.replaceAll(" ", "")
+            
+            if (dstartval == ""){
+                dstartval = "none"
+            }
+            if (dendval == ""){
+                dendval = "none"
+            }
+
+            if (dstartval != "none"){
+                dstartval = dstartval
+            }
+            if (dendval != "none"){
+                dendval = dendval
+            }
+
+            var req = new XMLHttpRequest;
+            req.open("GET", "/nrdzscanlist/" + dstartval + "/" + dendval)
+            req.send()
+            req.onreadystatechange = function(){
+                if (this.readyState == 4 && this.status == 200){
+                    var obslist_resp = this.responseText;
+                    var obslist_resp = obslist_resp.split("\n").filter(el => el != "")
+                    INIT_OBSLIST = []
+                    for (var item of obslist_resp){
+                        var obs = item
+                        obs = obs.slice(0,4) + "-" + obs.slice(4)
+                        obs = obs.slice(0,7) + "-" + obs.slice(7) 
+                        obs = obs.slice(0,10) + "-" + obs.slice(10)
+                        obs = obs.slice(0,13) + "-" + obs.slice(13)
+                        obs = obs.slice(0,16) + ":" + obs.slice(16)
+                        //obs = obs.slice(0,19) + ":" + obs.slice(19)
+                        INIT_OBSLIST.push(obs)
+                    }
+                    createObsList(INIT_OBSLIST.join(","), 0, 100);
+                }
+            }
+        }
+
+        fetchObsList()
+
+        document.onkeydown = function(e){
+            if (e.keyCode == 13){
+                fetchObsList()
+            }
+        }
+    </script>
+</html>

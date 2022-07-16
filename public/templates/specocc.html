@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300&display=swap" rel="stylesheet">
+	<title>Spectral Occupancy</title>
+    <style>
+        body{
+            background-color: #123;
+        }
+
+        #graph{
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #northlabel{
+            font-family: Source Code Pro;
+            font-size: 3vh;
+            position: fixed;
+            left: 50%;
+            top: 0%;
+            transform: translate(-50%, 0%);
+            color: red;
+        }
+
+        table{
+            position: fixed;
+            color: white;
+            font-family: Source Code Pro;
+            transform: translate(-50%, -50%);
+            table-layout: fixed;
+        }
+
+        #sel_info{
+            left: 10%;
+            top: 25%;
+        }
+
+        #sel_info tbody tr td:nth-child(2n + 1){
+            text-align: right;
+            width: 50%;
+        }
+
+        #sel_info tbody tr td:nth-child(2n){
+            width: 50%;
+        }
+
+        #formtable{
+            left: 10%;
+            top: 50%;
+        }
+
+        #formtable tbody tr td:nth-child(2n + 1){
+            text-align: right;
+        }
+
+        .forminput{
+            font-family: Source Code Pro;
+            background-color: #234;
+            padding: 1vh 1vh;
+            border: none;
+            color: white;
+        }
+
+        .forminput:focus{
+            outline: none;
+        }
+
+    </style>
+</head>
+<body>
+    <canvas id="graph" width="100" height="100">
+    </canvas>
+
+    <table id="sel_info">
+        <tbody>
+            <tr>
+                <td colspan="2">
+                    Selected Location
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Az:
+                </td>
+                <td id="az_sel">
+                    &nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    El:
+                </td>
+                <td id="el_sel">
+                    &nbsp;
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" id="catalog_search_url">
+
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table id="formtable">
+        <tbody>
+            <tr>
+                <td>
+                    CFREQ:
+                </td>
+                <td>
+                    <input id="cfreq" class="forminput" placeholder="CFREQ (MHz)">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    BW:
+                </td>
+                <td>
+                    <input id="bw" class="forminput" placeholder="Bandwidth (MHz)">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div id="northlabel">
+        N
+    </div>
+
+</body>
+<script>
+    var SPEC_DATA = {}
+    var TOTAL_OBS = 0
+
+    var wWidth = window.innerWidth
+    var wHeight = window.innerHeight
+
+    var mindim = Math.min(wWidth, wHeight)
+
+    graph.width = mindim
+    graph.height = mindim
+
+    var ctx = graph.getContext("2d")
+    ctx.imageSmoothingEnabled = false
+
+    var basered = [174, 13, 42]
+    var baseblue = [61, 81, 189]
+    
+
+
+    function drawBlueSky(){
+        ctx.beginPath()
+        ctx.fillStyle = "rgb(" + baseblue.join(",") + ")";
+        ctx.arc(Math.round(mindim / 2), Math.round(mindim / 2), mindim / 2, 0, 2 * Math.PI)
+        ctx.fill()
+        ctx.stroke()    
+    }
+
+    function drawGrid(){
+        ctx.strokeStyle = "rgba(0,0,0,1)"
+        ctx.fillStyle = "rgba(0,0,0,1)"
+        
+        ctx.beginPath()
+        ctx.fillRect(Math.round(mindim / 2), Math.round(mindim / 2), 1, Math.round(mindim / 2))
+        ctx.fillRect(Math.round(mindim / 2), Math.round(mindim / 2), Math.round(mindim / 2), 1)
+        ctx.fillRect(Math.round(mindim / 2), 0, 1, Math.round(mindim / 2))
+        ctx.fillRect(0, Math.round(mindim / 2), Math.round(mindim / 2), 1)
+        
+        ctx.closePath()
+        ctx.fill()
+    }
+
+    function fetchGradientColor(val){
+        var frac = val / TOTAL_OBS
+        
+        var rdiff = (basered[0] - baseblue[0]) * frac
+        var gdiff = (basered[1] - baseblue[1]) * frac
+        var bdiff = (basered[2] - baseblue[2]) * frac
+
+        return [baseblue[0] + rdiff, baseblue[1] + gdiff, baseblue[2] + bdiff]
+    }
+
+    function azElToXY(az, el){
+        var x = (mindim / 2) * (1 - (el / 90)) * Math.cos(Math.PI * az / 180) + (mindim / 2)
+        var y = (mindim / 2) * (1 - (el / 90)) * Math.sin(Math.PI * az / 180) + (mindim / 2)
+        return [x, y]
+    }
+
+    function graphData(){
+        ctx.clearRect(0, 0, graph.width, graph.height);
+        drawBlueSky()
+
+        var CLUSTER_RAD = 6
+
+        var newSPECDATA = {}
+
+        var keys = Object.keys(SPEC_DATA)
+        for (var key of keys){
+            var spl = key.split(",")
+            //subtract 90 to rotate so north is up on the page
+            var az = spl[0] * 1 - 90
+            var el = spl[1] * 1
+            var val = SPEC_DATA[key]
+            var coords = azElToXY(az, el)
+            x = Math.round(coords[0] / CLUSTER_RAD) * CLUSTER_RAD
+            y = Math.round(coords[1] / CLUSTER_RAD) * CLUSTER_RAD
+            var val = SPEC_DATA[key]
+            if (val > newSPECDATA[x + "," + y] || newSPECDATA[x + "," + y] == undefined){
+                newSPECDATA[x + "," + y] = val
+            }
+        }
+
+        for (var key of Object.keys(newSPECDATA)){
+            var x = key.split(",")[0]
+            var y = key.split(",")[1]
+            var val = newSPECDATA[key]
+            ctx.beginPath()
+            ctx.fillStyle = "rgb(" + fetchGradientColor(val).join(",") + ",1)"
+            ctx.fillRect(x - (CLUSTER_RAD / 2), y - (CLUSTER_RAD / 2), CLUSTER_RAD, CLUSTER_RAD)
+            ctx.stroke()
+        }
+        
+        drawGrid()
+    }
+
+    var CFREQ = '';
+    var BW = '';
+
+    function fetchData(){
+        CFREQ = cfreq.value
+        BW = bw.value
+        SPEC_DATA = {}
+        var req = new XMLHttpRequest;
+        req.open("GET", "/specoccdata/" + CFREQ + "/" + BW)
+        req.send()
+        req.onreadystatechange = function(){
+            if (this.readyState == 4 && this.status == 200){
+                var spl = this.responseText.split("|")
+                TOTAL_OBS = spl[0] * 1
+                var data = spl[1].split("\n").filter(el => el != "")
+                
+                for (var row of data){
+                    if (SPEC_DATA[row] == undefined){
+                        SPEC_DATA[row] = 0
+                    }
+                    SPEC_DATA[row] = SPEC_DATA[row] + 1
+                }
+            }
+
+            graphData()
+        }
+    }
+
+    document.onkeydown = function(e){
+        if (e.keyCode == 13){
+            fetchData()
+        }
+    }
+
+    graph.onmousedown = function(e){
+        var x = e.offsetX - (mindim / 2)
+        var y = e.offsetY - (mindim / 2)
+
+        var dist = Math.sqrt(x*x + y*y)
+
+        if (dist > mindim/2){
+            return
+        }
+
+        var el = Math.round(90 * (1 - (dist / (mindim / 2))) * 1000) / 1000
+        var az = Math.round((90 + (180 * Math.atan2(y, x) / Math.PI)) * 1000) / 1000
+
+        while (az < 0){
+            az = (az + 360) % 360
+        }
+
+        az_sel.textContent = az
+        el_sel.textContent = el
+    }
+
+    drawBlueSky()
+    drawGrid()
+
+</script>
+</html>

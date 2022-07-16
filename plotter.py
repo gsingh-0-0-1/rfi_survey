@@ -95,6 +95,7 @@ for freq in freqs:
     #plt.subplot(NROWS, NCOLS, NROWS * NCOLS, projection = 'polar')
     #plt.ylim([90, 0])
     print("Plotting at", freq)
+    antlo_meshes = {}
     for el in els:
         TS = 0
         r = 0
@@ -107,7 +108,7 @@ for freq in freqs:
             try:
                 ts = np.loadtxt(scandir + thisname + ".txt")
             except Exception as e:
-                print(thisname)
+                #print(thisname)
                 continue
 
             TS = TS + ts
@@ -120,8 +121,11 @@ for freq in freqs:
             r, th = np.meshgrid(rad, a)
             
             #sys.exit()
-            plt.subplot(NROWS, NCOLS, ind + 1, projection = 'polar')
-            plt.pcolormesh(th, r, z, vmin = MIN_POWER, vmax = MAX_POWER)
+            ax = plt.subplot(NROWS, NCOLS, ind + 1, projection = 'polar')
+            ax.set_theta_zero_location("N")
+            ax.set_theta_direction(-1)
+            mesh = ax.pcolormesh(th, r, z, vmin = MIN_POWER, vmax = MAX_POWER)
+            antlo_meshes[antlo] = mesh
         
         TS = TS / N
         Z = np.array([TS, TS]).T
@@ -132,11 +136,11 @@ for freq in freqs:
 
     for ind in range(len(antlos)):
         antlo = antlos[ind]
-        plt.subplot(NROWS, NCOLS, ind + 1, projection = 'polar')
-        plt.title("CFREQ " + str(freq) + " | BW " + str(IMG_BW) + " | MHz, AntLO " + antlo, fontsize = TITLE_FSIZE)
+        ax = plt.subplot(NROWS, NCOLS, ind + 1, projection = 'polar')
+        ax.set_title("CFREQ " + str(freq) + " | BW " + str(IMG_BW) + " | MHz, AntLO " + antlo, fontsize = TITLE_FSIZE)
 
-        plt.grid()
-        plt.colorbar()
+        ax.grid()
+        plt.colorbar(antlo_meshes[antlo])
     
     #plt.subplot(NROWS, NCOLS, NROWS * NCOLS, projection = 'polar')
     #plt.title("CFREQ " + str(freq) + " | BW " + str(IMG_BW) + " | MHz, Combined", fontsize = TITLE_FSIZE)
@@ -147,9 +151,10 @@ for freq in freqs:
     plt.savefig(scandir + "FCEN_" + freq + ".png", transparent = True)
     plt.close()
 
-    plt.subplot(1, 1, 1, projection = 'polar')
-    plt.ylim([90, 0])
-    
+    ax = plt.subplot(1, 1, 1, projection = 'polar')
+    ax.set_ylim([90, 0])
+    ax.set_theta_zero_location("N")
+    ax.set_theta_direction(-1)
     for ind in range(len(els)):
         el = els[ind]
         ts = combTS[ind]
@@ -159,12 +164,12 @@ for freq in freqs:
 
         r, th = np.meshgrid(rad, a)
 
-        plt.pcolormesh(th, r, ts, vmin = MIN_POWER, vmax = MAX_POWER)
+        mesh = ax.pcolormesh(th, r, ts, vmin = MIN_POWER, vmax = MAX_POWER)
     
 
-    plt.title("CFREQ " + str(freq) + " | BW " + str(IMG_BW) + " | MHz, Combined")
-    plt.grid()
-    plt.colorbar()
+    ax.set_title("CFREQ " + str(freq) + " | BW " + str(IMG_BW) + " | MHz, Combined")
+    ax.grid()
+    plt.colorbar(mesh)
     plt.tight_layout()
     plt.savefig(scandir + "FCEN_" + freq + "_combined.png", transparent = True)
     

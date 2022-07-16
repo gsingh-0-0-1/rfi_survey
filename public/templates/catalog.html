@@ -9,6 +9,7 @@
         body{
             font-family: Source Code Pro;
             background-color: #123;
+            text-align: center;
         }
         
         .forminput{
@@ -24,11 +25,13 @@
         }
 
         .formbutton{
+            position: relative;
             font-family: Source Code Pro;
             background-color: #666;
             border: none;
             color: #eee;
             padding: 1vh 1vh;
+            margin-top: 1.5%;
         }
 
         #queryresults{
@@ -48,6 +51,7 @@
         #queryresults{
             border-collapse: collapse;
             font-size: calc(1.1vh + 0.5vw);
+            text-align: left;
         }
 
         #queryresults tr:nth-child(5n + 1){
@@ -58,78 +62,96 @@
             padding-right: 2vh
         }
 
-        #queryresults td:nth-child(10n + 1){
+        #queryresults tr td.field_rank{
+            width: 3%;
             text-align: right;
-            width: 4%;
         }
 
-        #queryresults td:nth-child(10n + 2){
-            color: #0ff;
-            width: 16%;
+        #queryresults tr td.field_obs{
+            width: 15%;
         }
 
-        #queryresults td:nth-child(10n + 3){
-            color: #09e;
-            width: 7%;
+        #queryresults tr td.field_source{
+            width: 20%;
         }
 
-        #queryresults td:nth-child(10n + 4){
-            color: #09e;
-            width: 7%;
-        }
-
-        #queryresults td:nth-child(10n + 5){
-            color: #d55;
-            width: 13%;
-        }
-
-        #queryresults td:nth-child(10n + 6){
-            color: #f22;
-            width: 11%;
-        }
-
-        #queryresults td:nth-child(10n + 7){
-            color: #ff2;
-            width: 6%;
-        }
-
-        #queryresults td:nth-child(10n + 8){
-            color: #888;
-            width: 5%;
-        }
-
-        #queryresults td:nth-child(10n + 9){
-            color #666;
-            width: 17%;
-        }
-
-        #queryresults td:nth-child(10n){
-            color: #aaf;
-            width: 13%;
-        }
-
-        #formdetails{
+        #queryform{
             position: relative;
             left: 50%;
             transform: translate(-50%, 0%);
             color: white;
-            table-layout: fixed;
-            width: 55%;
+            border-collapse: collapse;
+            border: 0.2vh solid white;
         }
 
-        #formdetails td{
-            padding-top: 1vh;
-            padding-bottom: 1vh;
+        #queryform td{
+            border-top: 0.05vh solid white;
+            border-bottom: 0.05vh solid white;
+        }
+        #queryform td:nth-child(3n + 2){
+            /*border: none;*/
         }
 
-        #formdetails td:nth-child(2n){
-            padding-left: 1vh;
+        #queryform td{
+            padding: 1vh 1vh;
         }
 
-        #formdetails td:nth-child(2n + 1){
-            padding-right: 1vh;
-            text-align: right;
+        #queryform tr:nth-child(2n){
+            border-bottom: 0.2vh solid white;
         }
+
+        #queryform td:nth-child(3n){
+            border-right: 0.2vh solid white;
+        }
+
+        .field_obs{
+            color: #0ff;
+        }
+
+        .field_az{
+            color: #09e;
+        }
+
+        .field_el{
+            color: #09e;
+        }
+
+        .field_exceed{
+            color: #fa0;
+        }
+
+        .field_eaw{
+            color: #f22;
+        }
+
+        .field_cfreq{
+            color: #ff2;
+        }
+
+        .field_ant{
+            color: #888;
+        }
+
+        .field_source{
+        
+        }
+
+        .bbottom{
+            border-bottom: 0.1vh solid white;
+        }
+        
+        .btop{
+            border-top: 0.1vh solid white;
+        }
+
+        .bleft{
+            border-left: 0.1vh solid white;
+        }
+
+        .bright{
+            border-right: 0.1vh solid white;
+        }
+   
 
         /*Checkboxes styles*/
         input[type="checkbox"] { display: none; }
@@ -176,125 +198,225 @@
     </style>
 </head>
 <body>
-    <table id="formdetails">
+
+    <table id="queryform">
         <tbody>
             <tr>
-                <td>
-                    Center Frequency (MHz):
+                <td class='field_obs'>
+                    Obs Name
                 </td>
                 <td>
-                    <input class="forminput" type="text" id="cfreq">
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    Frequency Range (MHz):
                 </td>
                 <td>
-                    <input class="forminput" type="text" id="frange" value="25">
+                    <input type="checkbox" id="fetch_obs">
+                    <label for="fetch_obs" style="color: #FFFFFF; display: inline"></label>
                 </td>
-            </tr>
-            <tr>
-                <td>
-                    Azimuth:
-                </td>
-                <td>
-                    <input class="forminput" type="text" id="az">
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    Minimum Effective Azimuth Width:
+
+                <!-- ************************************************************************* -->
+
+                <td class='field_az'>
+                    Azimuth
                 </td>
                 <td>
-                    <input class="forminput" type="text" id="azwidth" value="0.5">
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    Azimuth Half-Range:
                 </td>
                 <td>
-                    <input class="forminput" type="text" id="azrange" value="1">
+                    <input type="checkbox" id="fetch_az">
+                    <label for="fetch_az" style="color: #FFFFFF; display: inline"></label>
+                </td>
+
+                <!-- ************************************************************************* -->
+
+                <td class='field_el'>
+                    Elevation
+                </td>
+                <td>
+                </td>
+                <td>
+                    <input type="checkbox" id="fetch_el">
+                    <label for="fetch_el" style="color: #FFFFFF; display: inline"></label>
                 </td>
             </tr>
             <tr>
                 <td>
-                    Elevation:
+                    <input class="forminput" type="text" id="obs_lo" placeholder="YYYY-MM-DD(-HH:MM:SS)">
                 </td>
                 <td>
-                    <input class="forminput" type="text" id="el">
+                    ->
+                </td>
+                <td>
+                    <input class="forminput" type="text" id="obs_hi" placeholder="YYYY-MM-DD(-HH:MM:SS)">
+                </td>
+
+                <!-- ************************************************************************* -->
+
+                <td>
+                    <input class="forminput" type="text" id="az_lo" placeholder="Degrees">
+                </td>
+                <td>
+                    ->
+                </td>
+                <td>
+                    <input class="forminput" type="text" id="az_hi" placeholder="Degrees">
+                </td>
+
+                <!-- ************************************************************************* -->
+
+                <td>
+                    <input class="forminput" type="text" id="el_lo" placeholder="Degrees">
+                </td>
+                <td>
+                    ->
+                </td>
+                <td>
+                    <input class="forminput" type="text" id="el_hi" placeholder="Degrees">
                 </td>
             </tr>
+
+            <tr>
+                <td class='field_exceed'>
+                    Power Spike
+                </td>
+                <td>
+                </td>
+                <td>
+                    <input type="checkbox" id="fetch_exceed">
+                    <label for="fetch_exceed" style="color: #FFFFFF; display: inline"></label>
+                </td>
+
+                <!-- ************************************************************************* -->
+
+                <td class='field_eaw'>
+                    Eff. Az. Width
+                </td>
+                <td>
+                </td>
+                <td>
+                    <input type="checkbox" id="fetch_eaw">
+                    <label for="fetch_eaw" style="color: #FFFFFF; display: inline"></label>
+                </td>
+
+                <!-- ************************************************************************* -->
+
+                <td class='field_cfreq'>
+                    CFREQ
+                </td>
+                <td>
+                </td>
+                <td>
+                    <input type="checkbox" id="fetch_cfreq">
+                    <label for="fetch_cfreq" style="color: #FFFFFF; display: inline"></label>
+                </td>
+            </tr>
+
             <tr>
                 <td>
-                    Elevation Range:
+                    <input class="forminput" type="text" id="exceed_lo" placeholder="(dB)">
                 </td>
                 <td>
-                    <input class="forminput" type="text" id="elrange" value="2.5">
+                    ->
+                </td>
+                <td>
+                    <input class="forminput" type="text" id="exceed_hi" placeholder="(dB)">
+                </td>
+
+                <!-- ************************************************************************* -->
+
+                <td>
+                    <input class="forminput" type="text" id="eaw_lo" placeholder="Degrees">
+                </td>
+                <td>
+                    ->
+                </td>
+                <td>
+                    <input class="forminput" type="text" id="eaw_hi" placeholder="Degrees">
+                </td>
+
+                <!-- ************************************************************************* -->
+
+                <td>
+                    <input class="forminput" type="text" id="cfreq_lo" placeholder="MHz">
+                </td>
+                <td>
+                    ->
+                </td>
+                <td>
+                    <input class="forminput" type="text" id="cfreq_hi" placeholder="MHz">
                 </td>
             </tr>
+
+            <tr>
+                <td class='field_ant'>
+                    Antenna
+                </td>
+                <td>
+                </td>
+                <td>
+                    <input type="checkbox" id="fetch_ant">
+                    <label for="fetch_ant" style="color: #FFFFFF; display: inline"></label>
+                </td>
+
+                <!-- ************************************************************************* -->
+
+                <td class='field_sat'>
+                    Satellite Guess
+                </td>
+                <td>
+                </td>
+                <td>
+                    <input type="checkbox" id="fetch_sat">
+                    <label for="fetch_sat" style="color: #FFFFFF; display: inline"></label>
+                </td>
+
+                <!-- ************************************************************************* -->
+
+                <td>
+                    
+                </td>
+                <td>
+                </td>
+                <td>
+                </td>
+            </tr>
+
             <tr>
                 <td>
-                    Start Date:
+                    <input class="forminput" type="text" id="ant_lo" placeholder="<ant1>,<ant2>,...">
                 </td>
                 <td>
-                    <input class="forminput" type="text" id="startdate" placeholder="YYYY-MM-DD">
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    End Date:
                 </td>
                 <td>
-                    <input class="forminput" type="text" id="enddate" placeholder="YYYY-MM-DD">
                 </td>
-            </tr>
-            <tr>
+
+                <!-- ************************************************************************* -->
+
                 <td>
-                    Max # of matches:
-                </td>
-                <td>
-                    <input class="forminput" type="text" id="maxhits" value="100">
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    Limit to Named Sources
+                    <input class="forminput" type="text" id="sat_lo" placeholder="<guess1>,<guess2>,...">
                 </td>
                 <td>
-                    <input type="checkbox" id="sourcesearch">
-                    <label for="sourcesearch" style="color: #FFFFFF; display: inline"></label>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <button class="formbutton" onclick="javascript:submitQuery()">
-                        Submit Query 
-                    </button>
                 </td>
                 <td>
-                    <button class="formbutton" onclick="javascript:searchFullSky()">
-                        Search Entire Sky @ CFREQ
-                    </button>
+                    <input type="checkbox" id="named_only">
+                    <label for="named_only" style="color: #FFFFFF; display: inline">Named Sources</label>
                 </td>
-            </tr>
+
+                <!-- ************************************************************************* -->
+
+                <td>
+                </td>
+                <td>
+                </td>
+                <td>
+                </td>
+            </tr>            
         </tbody>
     </table>
+
+    <input class='formbutton' value='ENTER to Search'>
+    <input class='formbutton' value='SHIFT+S to Select All'>
 
     <table id="queryresults">
         <tbody>
             <tr style='background-color: #123'>
-                <td>RANK</td>
-                <td>OBS</td>
-                <td>AZ</td>
-                <td>ELEV</td>
-                <td>POWER SPIKE (dB)</td>
-                <td>EFF. AZ. WIDTH</td>
-                <td>CFREQ</td>
-                <td>ANTLO</td>
-                <td>SOURCE GUESS</td>
-                <td>URL</td>
             </tr>
         </tbody>
     </table>
@@ -329,84 +451,126 @@
         return "#012"
     }
 
+    function correctKey(key){
+        var mod = key
+        if (mod == "start_az"){
+            mod = "az"
+        }
+        if (mod == "end_az"){
+            if (fetch_eaw.checked){
+                return "eaw"
+            }
+            return false
+        }
+        if (mod == "source_sat"){
+            mod = "source"
+        }
+        if (mod == "antlo"){
+            mod = "ant"
+        }
+        if (mod == 'elev'){
+            mod = 'el'
+        }
+        return mod
+    }
+
+    function correctVal(val){
+        if (val == "eaw"){
+            val = "EFF. AZ. WIDTH"
+        }
+        if (val == 'source'){
+            val = 'sat. source guess'
+        }
+        return val
+    }
+
+    function addColumn(key, content){
+        var el = document.createElement("td")
+        el.classList.add("field_" + key.toLowerCase())
+        el.textContent = String(content).toUpperCase()
+        tbody.rows[tbody.rows.length - 1].appendChild(el)
+    }
+
+    function proc(el){
+        return el.value.replaceAll(" ", "")
+    }
+
     function submitQuery(){
         
         var ROWCOLOR = "#012"
 
+        var fetch_items = []
+
+        //let's see what the user wants to fetch
+        if (fetch_obs.checked){
+            fetch_items.push("obs")
+        }
+        if (fetch_az.checked){
+            fetch_items.push("start_az")
+            fetch_items.push("end_az")
+        }
+        if (fetch_el.checked){
+            fetch_items.push("elev")
+        }
+        if (fetch_exceed.checked){
+            fetch_items.push("exceed")
+        }
+        if (fetch_cfreq.checked){
+            fetch_items.push("cfreq")
+        }
+        if (fetch_ant.checked){
+            fetch_items.push("antlo")
+        }
+        if (fetch_sat.checked){
+            fetch_items.push("source_sat")
+        }
+
         var query_items = []
-
-        //parse the CFREQ first
-        var item = "cfreq,"
-        if (cfreq.value.replaceAll(" ", "") == ""){
-            item = item + "IS NOT,NULL"
-        }
-        else{
-            var flo = cfreq.value * 1 - frange.value * 1
-            var fhi = cfreq.value * 1 + frange.value * 1
-            item = item + ">," + flo + ":cfreq,<," + fhi
-        }
-
-        query_items.push(item)
-
-        //now the elevation
-        var item = "elev,"
-        if (el.value.replaceAll(" ", "") == ""){
-            item = item + "IS NOT,NULL"
-        }
-        else{
-            var elo = el.value * 1 - elrange.value * 1
-            var ehi = el.value * 1 + elrange.value * 1
-            item = item + ">," + elo + ":elev,<," + ehi
+        
+        var obslo = ''
+        var obshi = ''
+        if (proc(obs_lo) != ""){
+            obslo = proc(obs_lo).replaceAll(":", "").replaceAll("-", "")
+            while (val.length < 14){
+                obslo = obslo + "0"
+            }
+            obslo = "'" + obslo + "'"
         }
 
-        query_items.push(item)
+        if (proc(obs_hi) != ""){
+            obshi = proc(obs_hi).replaceAll(":", "").replaceAll("-", "")
+            while (val.length < 14){
+                obshi = obshi + "0"
+            }
+            obshi = "'" + obshi + "'"
+        }
+        
+        query_items.push(["obs", obslo, obshi].join(","))
+        query_items.push(["az", proc(az_lo), proc(az_hi)].join(","))
+        query_items.push(["el", proc(el_lo), proc(el_hi)].join(","))
+        query_items.push(["exceed", proc(exceed_lo), proc(exceed_hi)].join(","))
+        query_items.push(["eaw", proc(eaw_lo), proc(eaw_hi)].join(","))
+        query_items.push(["cfreq", proc(cfreq_lo), proc(cfreq_hi)].join(","))
+        query_items.push(["ant", proc(ant_lo)].join(","))
+        query_items.push(["sat", proc(sat_lo)].join(","))
 
-        //now the azimuth
-        var item = "(end_az+start_az)<div>2,"
-        if (azrange.value.replaceAll(" ", "") == ""){
-            azrange.value = 2.5
+        if (named_only.checked){
+            query_items.push(["sat", "NOTNULL"])
         }
 
-        if (az.value.replaceAll(" ", "") == ""){
-            item = item + "IS NOT,NULL"
-        }
-        else{
-            var alo = az.value * 1 - azrange.value * 1
-            var ahi = az.value * 1 + azrange.value * 1
-            item = item + ">," + alo + ":(end_az+start_az)<div>2,<," + ahi
+
+        while (queryresults.rows.length > 0){
+            queryresults.deleteRow(0)
         }
 
-        query_items.push(item)
-
-        if (startdate.value.replaceAll(" ", "") != ""){
-            query_items.push("replace(replace(obs<cm>'-'<cm>'')<cm>'<cl>'<cm>''),>=,'" + startdate.value.replaceAll("-", "").replaceAll(":", "") + "000000'")
-        }
-        if (enddate.value.replaceAll(" ", "") != ""){
-            query_items.push("replace(replace(obs<cm>'-'<cm>'')<cm>'<cl>'<cm>''),<=,'" + enddate.value.replaceAll("-", "").replaceAll(":", "") + "000000'")
-        }
-
-        //put everything else together
-        query_items.push("COS(RADIANS(elev))*(end_az-start_az),>," + azwidth.value.replaceAll("-", "").replaceAll(":", ""))
-
-        if (sourcesearch.checked){
-            query_items.push("source,IS NOT,NULL")
-        }
-
-        for (var i = tbody.children.length - 1; i > 0; i--){
-            queryresults.deleteRow(i)
-        }
-
-       
-        if (maxhits.value * 1 > 2000){
+        var el = document.createElement("tr")
+        tbody.appendChild(el)
+        /*if (maxhits.value * 1 > 2000){
             maxhits.value = 2000
-        }
+        }*/
         var req = new XMLHttpRequest;
 
-        var query = "/query/" + query_items.join(":")
-        //for (var item of query_items){
-        //    query = query + item
-        //}
-
+        var query = "/querydev/" + fetch_items.join(",") + "|" + query_items.join(":")
         
         query = query + "|"
         
@@ -414,7 +578,7 @@
 
         query = query + "|"
 
-        query = query + maxhits.value
+        query = query + "100"//maxhits.value
 
         
 
@@ -422,73 +586,66 @@
         req.send()
         req.onreadystatechange = function(){
             if (this.readyState == 4 && this.status == 200){
-                console.log(this.responseText)
-                var data = this.responseText.split("\n")
-                data = data.filter(el => el != "")
-                for (var ind = 0; ind < data.length; ind++){
-                    //0 is obs
-                    //1 is start az
-                    //2 is end az
-                    //3 is elevation
-                    //4 is cfreq
-                    //5 is exceed power
-                    //6 is antlo
-                    //7 is source guess
-                    let entry = data[ind]
-                    var spl = entry.split(",")
-                    var row = document.createElement("tr")
-                    
-                    //first the rank
-                    row.innerHTML += "<td>" + (ind + 1) + "</td>"
-                    //now the obs name
-                    row.innerHTML += "<td>" + spl[0] + "</td>"
-                    //now the average azimuth
-                    let avgaz = Math.round(100 * 0.5 * (spl[1] * 1 + spl[2] * 1)) / 100
-                    row.innerHTML += "<td>" + avgaz + "</td>"
-                    //now the elevation
-                    row.innerHTML += "<td>" + spl[3] + "</td>"
-                    //now the exceed value
-                    row.innerHTML += "<td>" + spl[5] + "</td>"
-                    //now the effective width
-                    let azwidth = spl[2] - spl[1]
-                    row.innerHTML += "<td>" + Math.round(100 * azwidth * Math.cos(spl[3] * Math.PI / 180)) / 100 + "</td>"
-
-                    //now the CFREQ
-                    row.innerHTML += "<td>" + spl[4] + "</td>"
-
-                    //now the antlo
-                    row.innerHTML += "<td>" + spl[6] + "</td>"
-
-                    //now the source guess
-                    if (spl[7] == "null" || spl[7] == null || spl[7].includes("null")){
-                        spl[7] = "?"
+                var data = JSON.parse(this.responseText)
+                var keys = Object.keys(data[0])
+                addColumn("RANK", "RANK")
+                for (var key of keys){
+                    let mod = correctKey(key)
+                    if (!mod){
+                        continue
                     }
-                    row.innerHTML += "<td>" + spl[7] + "</td>"
+                    var val = correctVal(mod)
+                    addColumn(mod, val)
+                }
+                
+                for (var row of data){
+                    tbody.insertRow()
+                    addColumn("RANK", tbody.rows.length - 1)
+                    for (var key of keys){
+                        let val = row[key]
+                        let mod = correctKey(key)
 
-                    //now the url
-                    row.innerHTML += "<td><a href='/scanobs/" + spl[0] + "/heatmaps?freq=" + spl[4].replace(" ", "") + "' target='_blank'>View in portal --></a></td>"
-                    //give the table row alternating background colors based on the observation
-                    if (row.children[1].textContent != tbody.children[tbody.children.length - 1].children[1].textContent){
-                        ROWCOLOR = getRowColor(ROWCOLOR)
+                        if (!mod){
+                            continue
+                        }
+                        if (mod == 'az'){
+                            val = Math.round(0.5 * (row['start_az'] + row['end_az']) * 100) / 100
+                        }
+                        if (mod == 'eaw'){
+                            val = Math.round(Math.cos(Math.PI * row['elev'] / 180) * (row['end_az'] - row['start_az']) * 100) / 100
+                        }
+                        addColumn(mod, val)
                     }
-                    /*var obs = spl[0];
-                    var t = obs.split("-")
-                    var t = t[t.length - 1].split(":")
-                    var r = (t[0] * 1)
-                    var g = (t[1] * 1)
-                    var b = (t[2] * 1)
-                    var c = (r + g + b) % Object.keys(COLORS).length*/
-                    row.style.backgroundColor = ROWCOLOR//COLORS[c]
-
-                    tbody.appendChild(row)
                 }
             }
         }
     }
 
+    function selectAll(){
+        for (var el of document.querySelectorAll("input[type=checkbox]")){
+            el.checked = true
+        }
+    }
+
     document.onkeydown = function(e){
-        if (e.keyCode == 13){
-            //submitQuery()
+        if (e.code == "Enter"){
+            submitQuery()
+        }
+        if (e.shiftKey && e.code == "KeyS"){
+            selectAll()
+        }
+    }
+
+    fetch_eaw.onchange = function(){
+        if (this.checked){
+            fetch_az.checked = true
+            fetch_el.checked = true
+        }
+    }
+
+    named_only.onchange = function(){
+        if (this.checked){
+            fetch_sat.checked = true
         }
     }
 </script>
