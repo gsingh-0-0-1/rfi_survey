@@ -24,7 +24,7 @@ var RFIDBNAME = "rfisources.db"
 var DIR = '/home/obsuser/gsingh/rfi_survey/'
 var OBSDIR = DIR + "obs/"
 
-var NRDZ_DIRECTORY = "/mnt/datab-netStorage-40G/visualize/plots/HCRO-NRDZ-CHIME/"
+var NRDZ_DIRECTORY = "/mnt/datab-netStorage-40G/visualize/plots/<sensor>/"
 var NRDZ_F_LO = 410
 var NRDZ_F_HI = 1790
 var NRDZ_FSTEP = 20
@@ -203,6 +203,11 @@ function checkAndStartObs(){
     console.log(proc.pid)
 }
 
+function nrdzToUnix(dstring){
+    var d = Date.parse(dstring)
+    return d
+}
+
 app.get("/obslist/:flo/:fhi/:dstart/:dend", (req, res) => {
     var flo = req.params.flo
     var fhi = req.params.fhi
@@ -339,15 +344,39 @@ app.get("/scanobs/:obs/files", (req, res) => {
     request("http://" + IP + ":" + String(PORT) + "/obs/" + req.params.obs).pipe(res)
 })
 
-app.get("/scanobs/:obs/:option", (req, res) => {
+app.get("/scanobs/:obs/:option/", (req, res) => {
     res.sendFile("public/templates/" + req.params.option + ".html", {root: __dirname})
 })
 
 app.get("/nrdzscanlist/:dlo/:dhi", (req, res) => {
-    var l = fs.readdirSync(NRDZ_DIRECTORY + NRDZ_F_LO + "/spectrograms/")
+    var l = fs.readdirSync(NRDZ_DIRECTORY.replace("<sensor>", "HCRO-NRDZ-CHIME") + NRDZ_F_LO + "/spectrograms/")
+    
+    var dlo = req.params.dlo
+    var dhi = req.params.dhi
+   
     for (let i = 0; i < l.length; i++){
-        l[i] = l[i].split("D")[1].replace("T", "").split("M")[0]
+        l[i] = l[i].split("D")[1].split("M")[0]
+        l[i] = l[i].slice(0,4) + "-" + l[i].slice(4)
+        l[i] = l[i].slice(0,7) + "-" + l[i].slice(7)
+        l[i] = l[i].slice(0,13) + ":" + l[i].slice(13)
+        l[i] = l[i].slice(0,16) + ":" + l[i].slice(16)
     }
+   
+    if (dlo != "none"){
+        dlo = nrdzToUnix(dlo)
+        l = l.filter(el => nrdzToUnix(el) >= dlo)
+    }
+
+    if (dhi != "none"){
+        dhi = nrdzToUnix(dhi)
+        l = l.filter(el => nrdzToUnix(el) <= dhi)
+    }
+
+    for (let i = 0; i < l.length; i++){
+        l[i] = l[i].replace("T", "")
+        l[i] = l[i].slice(0,10) + "-" + l[i].slice(10)
+    }
+    
     res.send(l.join("\n"))
 })
 
@@ -359,18 +388,19 @@ app.get("/nrdzscan/:obs", (req, res) => {
     res.sendFile("public/templates/nrdz/nrdzscan.html", {root: __dirname})
 })
 
-app.get("/nrdzscan/:obs/:option", (req, res) => {
-    res.sendFile("public/templates/nrdz/" + req.params.option + ".html", {root: __dirname}) 
+app.get("/nrdzscan/:obs/:option/:sensor", (req, res) => {
+    res.sendFile("public/templates/nrdz/option.html", {root: __dirname}) 
 })
 
-app.get("/nrdzscan/:obs/:option/first", (req, res) => {
-    var obs = req.params.obs
-    while (obs.includes(":") || obs.includes("-")){
-        obs = obs.replace(":", "").replace("-", "")
+app.get("/nrdzimages/:option/:sensor/:freq/:time", (req, res) => {
+    var path = NRDZ_DIRECTORY.replace("<sensor>", req.params.sensor) + req.params.freq + "/" + req.params.option + "/"
+    var img = fs.readdirSync(path).filter(el => el.includes(req.params.time))[0]
+    if (img == undefined){
+        res.send("No image found")
     }
-    var l = fs.readdirSync(NRDZ_DIRECTORY + NRDZ_F_LO + "/" + req.params.option).filter(el => el.includes(obs))
-    l.sort()
-    res.send(l[0])
+    else{
+        res.sendFile(path + img)
+    }
 })
 
 app.get("/getflag/:obs", (req, res) => {
@@ -449,7 +479,6 @@ function correctQueryItem(item){
     if (item == 'el'){
         item = 'elev'
     }
-
     return item
 }
 
@@ -478,12 +507,16 @@ app.get("/querydev/:query", (req, res) => {
 
     for (var query_item of query_items){
         var condition = '('
-        let item = query_item.split(",").filter(el => el != "")
-        if (item.length < 2){
+        let item = query_item.split(",")//.filter(el => el != "")
+        if (item[1] == '' && item[2] == ''){
             continue
         }
 
         item[0] = correctQueryItem(item[0])
+
+        if (item[0] == 'obs'){
+            item[0] = "replace(replace(obs,':',''),'-','')"
+        }
 
         if (item[0] == 'antlo' || item[0].includes('source')){
             var alikes = []
@@ -498,8 +531,10 @@ app.get("/querydev/:query", (req, res) => {
         }
         else{
             var comparisons = []
-            comparisons.push(item[0] + " >= " + item[1])
-            if (item[2] != undefined){
+            if (item[1] != undefined && item[1] != ""){
+                comparisons.push(item[0] + " >= " + item[1])
+            }
+            if (item[2] != undefined && item[2] != ""){
                 comparisons.push(item[0] + " <= " + item[2])
             }
             condition = condition + " " + comparisons.join(" and ")

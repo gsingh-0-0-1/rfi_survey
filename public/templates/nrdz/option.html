@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300&display=swap" rel="stylesheet">
+    <title></title>
+    <style>
+        body{
+            background-color: #123;
+        }
+
+        #titletext{
+            margin-top: 1%;
+            position: relative;
+            left: 2%;
+            font-size: 5vh;
+            color: #eee;
+            font-family: Source Code Pro;
+            display: block;
+        }
+
+        #cursor{
+            color: #6f6;
+        }
+
+        .nrdzfig{
+            position: relative;
+            display: inline-block;
+            margin-top: 7%;
+            margin-left: 5%;
+            margin-right: 5%;
+            font-family: Source Code Pro, Courier;
+            border: none;
+            width: 40%;
+            text-align: center;
+            color: white;
+        }
+
+        .nrdzimg{
+            width: 100%;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="titletext"><span id="cursor">_</span>
+    </div>	
+</body>
+<script>
+
+    function incrementTime(t, inc){
+        for (var ind = t.length - 1; ind >= 0; ind--){
+            t[ind] = Number(t[ind]) + Number(inc)
+        }
+    }
+
+    var NRDZ_F_LO = 410
+    var NRDZ_F_HI = 1790
+    var NRDZ_FSTEP = 20
+    
+    var spl = window.location.pathname.split("/").filter(el => el != "")
+    
+    var OBS = spl[1] 
+    var FIRST_TIME = Date.parse(OBS.slice(0,10) + "T" + OBS.slice(11))
+    var option = spl[2]
+    var sensor = spl[3]
+
+    document.title = sensor + " " + option
+
+    titletext.innerHTML = option + " @ " + sensor + " @ " + OBS + titletext.innerHTML
+
+    function fetchImages(){
+        for (var freq = NRDZ_F_LO; freq <= NRDZ_F_HI; freq = freq + NRDZ_FSTEP){
+            let s = (freq - NRDZ_F_LO) / NRDZ_FSTEP
+            var increment = s * 10 * 1000
+            var time = FIRST_TIME + increment
+            var time = new Date(time)
+            console.log(time)
+            var time = [time.getFullYear(), (time.getMonth() + 1), time.getDate(), time.getHours(), time.getMinutes(), time.getSeconds()]
+            for (var ind = 0; ind < time.length; ind++){
+                while (String(time[ind]).length < 2){
+                    time[ind] = "0" +time[ind]
+                }
+            }
+            formattedtime = time[0] + time[1] + time[2] + "T" + time[3] + time[4] + time[5]
+            var url = "/nrdzimages/" + option + "/" + sensor + "/" + freq + "/" + formattedtime
+            var fig = document.createElement("figure")
+            var img = document.createElement("img")
+            img.src = url
+            fig.classList.add("nrdzfig")
+            img.classList.add("nrdzimg")
+            fig.appendChild(img)
+            fig.innerHTML = fig.innerHTML + "<figcaption>" + time[0] + "-" + time[1] + "-" + time[2] + "-" + time[3] + ":" + time[4] + ":" + time[5] + " @ " + freq + " MHz</figcaption>"
+            document.body.appendChild(fig)
+        }
+    }
+
+    fetchImages()
+
+    function animateCursor(){
+        if (cursor.innerHTML == "&nbsp;"){
+            cursor.textContent = "_"
+            return
+        }
+        if (cursor.textContent == "_"){
+            cursor.innerHTML = "&nbsp;"
+            return
+        }
+    }
+
+    setInterval(animateCursor, 600)
+
+</script>
+</html>

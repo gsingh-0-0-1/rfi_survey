@@ -36,7 +36,7 @@ EL_RES = 1
 #full frequency list of the RFI survey, in MHz
 freq_list = [float(sys.argv[1])]#list(np.arange(ATA_FREQ_LOW + BW / 2, ATA_FREQ_HIGH, BW))
 
-ant_list = ['1a', '1f', '5c']
+ant_list = ['5c', '1f', '1a']
 N_ANTS = len(ant_list)
 lo = 'A'
 antlo_list = [ant + lo for ant in ant_list]
@@ -111,7 +111,7 @@ steps = 60
 el_spacing = ant_elevs[ant_list[0]][1] - ant_elevs[ant_list[0]][0]
 
 ata_control.reserve_antennas(ant_list)
-atexit.register(ata_control.release_antennas, ant_list, False)
+atexit.register(ata_control.release_antennas, ant_list, True)
 
 for freq in freq_list:
     os.system("killall ata_udpdb")

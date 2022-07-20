@@ -70,6 +70,10 @@
             outline: none;
         }
 
+        #cat_search{
+            color: #aaa;
+        }
+
     </style>
 </head>
 <body>
@@ -101,7 +105,7 @@
             </tr>
             <tr>
                 <td colspan="2" id="catalog_search_url">
-
+                    <a href='' target='_blank' id='cat_search'>Search Catalog...</a>
                 </td>
             </tr>
         </tbody>
@@ -109,6 +113,11 @@
 
     <table id="formtable">
         <tbody>
+            <tr>
+                <td colspan="2" style='text-align: center;'>
+                    Input Data
+                </td>
+            </tr>
             <tr>
                 <td>
                     CFREQ:
@@ -281,6 +290,10 @@
 
         az_sel.textContent = az
         el_sel.textContent = el
+        cat_search.href = "/catalog?az=" + az + "&el=" + el
+        if (!isNaN(cfreq.value)){
+            cat_search.href = cat_search.href + "&cfreq=" + cfreq.value
+        }
     }
 
     drawBlueSky()

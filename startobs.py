@@ -22,7 +22,7 @@ f.write("*" + "-"*48 + "*" + "\n")
 f.write("*"*50 + "\n")
 f.write("STARTING OBS AT TIME " + date2string(datetime.datetime.now()) + "\n")
 
-subprocess.call(["nohup", "python", "multi_ant_scan.py", str(CFREQ)], stdout = f, stderr = f )
+subprocess.call(["python", "multi_ant_scan.py", str(CFREQ)], stdout = f, stderr = f )
 
 f.close()
 

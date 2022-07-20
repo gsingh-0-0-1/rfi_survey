@@ -33,6 +33,10 @@
             padding: 1vh 1vh;
             margin-top: 1.5%;
         }
+        
+        .formbutton:focus{
+            outline: none;
+        }
 
         #queryresults{
             position: relative;
@@ -58,13 +62,19 @@
             border-bottom: 0.1vh solid #888;
         }
 
+        #queryresults tr td{
+            border-right: 0.05vh solid #888;
+            text-indent: 0.7vh;
+        }
+
         #queryresults tr td:first-child{
-            padding-right: 2vh
+            text-indent: 0px;
         }
 
         #queryresults tr td.field_rank{
-            width: 3%;
+            width: 5%;
             text-align: right;
+            padding-right: 1%;
         }
 
         #queryresults tr td.field_obs{
@@ -76,6 +86,7 @@
         }
 
         #queryform{
+            text-align: left;
             position: relative;
             left: 50%;
             transform: translate(-50%, 0%);
@@ -104,16 +115,24 @@
             border-right: 0.2vh solid white;
         }
 
+        .catalog_table_title{
+            width: 100%;
+            text-align: center;
+            font-size: 5vh;
+        }
+
         .field_obs{
             color: #0ff;
         }
 
         .field_az{
             color: #09e;
+            width: 6%;
         }
 
         .field_el{
             color: #09e;
+            width: 5%;
         }
 
         .field_exceed{
@@ -126,14 +145,20 @@
 
         .field_cfreq{
             color: #ff2;
+            width: 7%;
         }
 
         .field_ant{
             color: #888;
+            width: 4%;
         }
 
         .field_source{
         
+        }
+        
+        .field_url{
+            width: 4%;
         }
 
         .bbottom{
@@ -152,6 +177,13 @@
             border-right: 0.1vh solid white;
         }
    
+        #loading{
+            position: relative;
+            margin-top: 10%;
+            color: #ddd;
+            font-family: Source Code Pro, Courier;
+            font-size: 5vh;
+        }
 
         /*Checkboxes styles*/
         input[type="checkbox"] { display: none; }
@@ -201,6 +233,11 @@
 
     <table id="queryform">
         <tbody>
+            <tr>
+                <td colspan="9" class="catalog_table_title">
+                    ATA RFI Catalog
+                </td>
+            </tr>
             <tr>
                 <td class='field_obs'>
                     Obs Name
@@ -411,8 +448,11 @@
         </tbody>
     </table>
 
-    <input class='formbutton' value='ENTER to Search'>
-    <input class='formbutton' value='SHIFT+S to Select All'>
+    <input type="button" class='formbutton' value='ENTER to Search'>
+    <input type="button" class='formbutton' value='SHIFT+S to Select All'>
+
+    <div id="loading">
+    </div>
 
     <table id="queryresults">
         <tbody>
@@ -453,13 +493,13 @@
 
     function correctKey(key){
         var mod = key
+        if (mod.includes("obs")){
+            mod = "obs"
+        }
         if (mod == "start_az"){
             mod = "az"
         }
         if (mod == "end_az"){
-            if (fetch_eaw.checked){
-                return "eaw"
-            }
             return false
         }
         if (mod == "source_sat"){
@@ -478,25 +518,62 @@
         if (val == "eaw"){
             val = "EFF. AZ. WIDTH"
         }
+        if (val == "exceed"){
+            val = "Power Spike (dB)"
+        }
         if (val == 'source'){
             val = 'sat. source guess'
         }
         return val
     }
 
-    function addColumn(key, content){
+    function addColumn(key, content, url){
         var el = document.createElement("td")
         el.classList.add("field_" + key.toLowerCase())
-        el.textContent = String(content).toUpperCase()
+        if (url){
+            el.innerHTML = String(content)
+        }
+        else{
+            el.textContent = String(content).toUpperCase()
+        }
         tbody.rows[tbody.rows.length - 1].appendChild(el)
     }
 
     function proc(el){
-        return el.value.replaceAll(" ", "")
+        let val = el.value.replaceAll(" ", "")
+        return val
+    }
+
+    function autoCheck(){
+        if (named_only.checked){
+            fetch_sat.checked = true
+        }
+        if (fetch_eaw.checked){
+            fetch_az.checked = true
+            fetch_el.checked = true
+        }
+    }
+
+    var loadinginterval = 0;
+    function animateLoading(){
+        loading.innerHTML = loading.innerHTML.replace("...", "")
+        loading.innerHTML = loading.innerHTML + "."
+    }
+
+    function showLoading(){
+        loading.style.display = "block"
+        loading.innerHTML = "Fetching data."
+        loadinginterval = setInterval(animateLoading, 300)
+    }
+
+    function hideLoading(){
+        loading.style.display = "none";
+        clearInterval(loadinginterval)           
     }
 
     function submitQuery(){
-        
+        autoCheck()
+        showLoading()
         var ROWCOLOR = "#012"
 
         var fetch_items = []
@@ -531,7 +608,7 @@
         var obshi = ''
         if (proc(obs_lo) != ""){
             obslo = proc(obs_lo).replaceAll(":", "").replaceAll("-", "")
-            while (val.length < 14){
+            while (obslo.length < 14){
                 obslo = obslo + "0"
             }
             obslo = "'" + obslo + "'"
@@ -539,7 +616,7 @@
 
         if (proc(obs_hi) != ""){
             obshi = proc(obs_hi).replaceAll(":", "").replaceAll("-", "")
-            while (val.length < 14){
+            while (obshi.length < 14){
                 obshi = obshi + "0"
             }
             obshi = "'" + obshi + "'"
@@ -580,14 +657,22 @@
 
         query = query + "100"//maxhits.value
 
-        
+        console.log(query) 
 
         req.open("GET", query)
         req.send()
         req.onreadystatechange = function(){
             if (this.readyState == 4 && this.status == 200){
                 var data = JSON.parse(this.responseText)
+                console.log(data)
                 var keys = Object.keys(data[0])
+                console.log(keys)
+                if (fetch_eaw.checked){
+                    keys.splice(keys.indexOf("elev") + 1, 0, "eaw")
+                }
+                if (keys.includes("cfreq") && keys.includes("obs")){
+                    keys.push("url")
+                }
                 addColumn("RANK", "RANK")
                 for (var key of keys){
                     let mod = correctKey(key)
@@ -596,15 +681,22 @@
                     }
                     var val = correctVal(mod)
                     addColumn(mod, val)
+
                 }
-                
-                for (var row of data){
+
+
+                console.log(keys) 
+                for (var ind = 0; ind < data.length; ind++){
+                    var row = data[ind]
                     tbody.insertRow()
                     addColumn("RANK", tbody.rows.length - 1)
                     for (var key of keys){
                         let val = row[key]
+                        if (val == "NULL" || val == "null" || val == null){
+                            val = "?"
+                        }
                         let mod = correctKey(key)
-
+                        let url = false
                         if (!mod){
                             continue
                         }
@@ -614,9 +706,22 @@
                         if (mod == 'eaw'){
                             val = Math.round(Math.cos(Math.PI * row['elev'] / 180) * (row['end_az'] - row['start_az']) * 100) / 100
                         }
-                        addColumn(mod, val)
+                        if (mod == 'url'){
+                            url = true
+                            val = "<a target='_blank' href='/scanobs/" + row['obs'] + "/heatmaps/?freq=" + row['cfreq'] + "'>--></a>"
+                        }
+                        addColumn(mod, val, url)
+                    }
+                    if (keys.includes('obs')){
+                        if (ind == 0){
+                        }
+                        else if (row['obs'] != data[ind - 1]['obs']){
+                            ROWCOLOR = getRowColor(ROWCOLOR)
+                        }
+                        tbody.rows[tbody.rows.length - 1].style.backgroundColor = ROWCOLOR
                     }
                 }
+                hideLoading()
             }
         }
     }
@@ -636,17 +741,30 @@
         }
     }
 
-    fetch_eaw.onchange = function(){
-        if (this.checked){
-            fetch_az.checked = true
-            fetch_el.checked = true
-        }
+    for (var el of document.querySelectorAll("input[type=checkbox]")){
+        el.onchange = autoCheck
     }
 
-    named_only.onchange = function(){
-        if (this.checked){
-            fetch_sat.checked = true
+    var params = window.location.href.split("?")
+    console.log(params)
+    if (params.length > 1){
+        params = params[1]
+        params = params.split("&")
+        for (var param of params){
+            let spl = param.split("=")
+            let key = spl[0]
+            let val = spl[1]
+            if (isNaN(val)){
+                document.getElementById(key + "_lo").value = val
+            }
+            else{
+                document.getElementById(key + "_lo").value = Math.round(100 * val * 0.9) / 100
+                document.getElementById(key + "_hi").value = Math.round(100 * val * 1.1) / 100
+            }
         }
+        selectAll()
+        submitQuery()
     }
+
 </script>
 </html>

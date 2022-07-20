@@ -22,7 +22,7 @@ def downsample(l, f):
     ds = sum(updated) / f
     return ds
 
-DOWNSAMPLE_FACTOR = 16
+DOWNSAMPLE_FACTOR = 32
 
 MJD_UNIX_DAYS = 40587
 
@@ -93,7 +93,7 @@ for ant in antlo_list:
             pass
         db.commit()
         db.close()
-
+        
         if FCH1 not in data:
             data[FCH1] = {}
 

@@ -114,17 +114,17 @@
             <tbody>
                 <tr>
                     <td>
-                        Start Date:
+                        Start Date/Time:
                     </td>
                     <td>
-                        <input id="dstart" type="text" class="forminput" placeholder="YYYY-MM-DD">
+                        <input id="dstart" type="text" class="forminput" placeholder="YYYY-MM-DD-HH:MM:SS">
                     </td>
                 </tr>
                     <td>
-                        End Date:
+                        End Date/Time:
                     </td>
                     <td>
-                        <input id="dend" type="text" class="forminput" placeholder="YYYY-MM-DD">
+                        <input id="dend" type="text" class="forminput" placeholder="YYYY-MM-DD-HH:MM:SS">
                     </td>
                 </tr>
             <tbody>
@@ -167,7 +167,7 @@ function createObsList(obslist, start, stop, reset=true){
                 var rawobsname = obsname
 
 
-                var obs_href = "<br><div class='obsref' style='width: 45%; height: 4.5%; margin-left: 2%; display: flex; align-items: center; font-family: Source Code Pro; background-color: #234; padding-top: 1%; padding-bottom: 1%; text-indent: 2vw'><a style='color: #eee; text-decoration: none;' href='/nrdzscan/" + rawobsname + "'>" + obsname + " </a></div>"
+                var obs_href = "<br><div class='obsref' style='width: 45%; height: 4.5%; margin-left: 2%; display: flex; align-items: center; font-family: Source Code Pro; background-color: #234; padding-top: 1%; padding-bottom: 1%; text-indent: 2vw'><a style='color: #eee; text-decoration: none;' href='/nrdzscan/" + rawobsname + "'>Freq. Scan @ " + obsname + " </a></div>"
                 obscontainer.innerHTML += obs_href
             }
         }
@@ -208,11 +208,12 @@ function createObsList(obslist, start, stop, reset=true){
             }
 
             if (dstartval != "none"){
-                dstartval = dstartval
+                dstartval = dstartval.slice(0,10) + "T" + dstartval.slice(11)
             }
             if (dendval != "none"){
-                dendval = dendval
+                dendval = dendval.slice(0,10) + "T" + dendval.slice(11)
             }
+
 
             var req = new XMLHttpRequest;
             req.open("GET", "/nrdzscanlist/" + dstartval + "/" + dendval)
@@ -224,11 +225,11 @@ function createObsList(obslist, start, stop, reset=true){
                     INIT_OBSLIST = []
                     for (var item of obslist_resp){
                         var obs = item
-                        obs = obs.slice(0,4) + "-" + obs.slice(4)
+                        /*obs = obs.slice(0,4) + "-" + obs.slice(4)
                         obs = obs.slice(0,7) + "-" + obs.slice(7) 
                         obs = obs.slice(0,10) + "-" + obs.slice(10)
-                        obs = obs.slice(0,13) + "-" + obs.slice(13)
-                        obs = obs.slice(0,16) + ":" + obs.slice(16)
+                        obs = obs.slice(0,13) + ":" + obs.slice(13)
+                        obs = obs.slice(0,16) + ":" + obs.slice(16)*/
                         //obs = obs.slice(0,19) + ":" + obs.slice(19)
                         INIT_OBSLIST.push(obs)
                     }
