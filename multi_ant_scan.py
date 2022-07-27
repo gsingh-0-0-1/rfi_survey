@@ -1,13 +1,5 @@
 #!/home/obsuser/miniconda3/envs/ATAobs/bin/python
 
-
-#######################
-# This example script shows how to set up an observation using the
-# SNAP boards with a swivel across azimuth.
-# Trying antenna reservation, tuning, movement, data recording
-# for new feed antennas.
-#######################
-
 import ATATools
 from ATATools import ata_control, logger_defaults, ata_ephem
 import atexit
@@ -33,7 +25,6 @@ EL_START = 20
 EL_END = 30
 EL_RES = 1
 
-#full frequency list of the RFI survey, in MHz
 freq_list = [float(sys.argv[1])]#list(np.arange(ATA_FREQ_LOW + BW / 2, ATA_FREQ_HIGH, BW))
 
 ant_list = ['5c', '1f', '1a']
@@ -67,6 +58,9 @@ ELEVS = list(np.arange(EL_START, EL_END + EL_RES, EL_RES))
 t = time.time()
 
 THIS_SCAN_TIME = maketimestamp()
+
+print(THIS_SCAN_TIME)
+
 os.mkdir("./obs/" + THIS_SCAN_TIME)
 os.mkdir("./obs/" + THIS_SCAN_TIME + "/ephems/")
 
@@ -100,7 +94,6 @@ for elev in ELEVS[::-1]:
 
     ant_elevs[ant_list[ant_ind]].append(elev)
 
-#override for now - every antenna should look at the entire sky
 for ind in range(len(ant_list)):
     ant_elevs[ant_list[ind]] = ELEVS[ind::N_ANTS]#ant_elevs[ant][::-1]
 
@@ -143,7 +136,7 @@ for freq in freq_list:
     for ant in ant_list:
         FULL_EPHEM[ant] = None
 
-    grace_time = 120
+    grace_time = 20
     spacing_time = el_spacing * 1.5
     
     t_start = time.time()
@@ -204,7 +197,6 @@ for freq in freq_list:
     THIS_SCAN_TIME_n = maketimestamp()
     shutil.move("./obs/" + THIS_SCAN_TIME, "./obs/" + THIS_SCAN_TIME_n)
     THIS_SCAN_TIME = THIS_SCAN_TIME_n
-
     #blocking call - start recording!
     for rep in range(3):
         try:
@@ -227,7 +219,7 @@ ls = open("./obs/lastscan.txt", "w")
 ls.write(THIS_SCAN_TIME)
 ls.close()
 
-ata_control.release_antennas(ant_list, False) 
+ata_control.release_antennas(ant_list, True) 
 
 subprocess.Popen(["python",  "scanproc.py", str(THIS_SCAN_TIME)], stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
 #os.system("python catalogsources.py " + str(THIS_SCAN_TIME))

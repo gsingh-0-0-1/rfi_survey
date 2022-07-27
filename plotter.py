@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import sys
+import matplotlib
+
+colormap = matplotlib.cm.viridis
 
 #f = open("./obs/lastscan.txt")
 SCAN = sys.argv[1]
@@ -124,7 +127,7 @@ for freq in freqs:
             ax = plt.subplot(NROWS, NCOLS, ind + 1, projection = 'polar')
             ax.set_theta_zero_location("N")
             ax.set_theta_direction(-1)
-            mesh = ax.pcolormesh(th, r, z, vmin = MIN_POWER, vmax = MAX_POWER)
+            mesh = ax.pcolormesh(th, r, z, vmin = MIN_POWER, vmax = MAX_POWER, cmap = colormap)
             antlo_meshes[antlo] = mesh
         
         TS = TS / N
@@ -164,7 +167,7 @@ for freq in freqs:
 
         r, th = np.meshgrid(rad, a)
 
-        mesh = ax.pcolormesh(th, r, ts, vmin = MIN_POWER, vmax = MAX_POWER)
+        mesh = ax.pcolormesh(th, r, ts, vmin = MIN_POWER, vmax = MAX_POWER, cmap = colormap)
     
 
     ax.set_title("CFREQ " + str(freq) + " | BW " + str(IMG_BW) + " | MHz, Combined")

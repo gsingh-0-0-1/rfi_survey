@@ -85,14 +85,6 @@ for ant in antlo_list:
         f.write(str(CFREQ))
         f.close()
 
-        db = sqlite3.connect("obsdata.db")
-        cur = db.cursor()
-        try:
-            cur.execute(" INSERT INTO obsdata VALUES ('" + SCAN + "', " + str(CFREQ) + ", 0, NULL) ")
-        except sqlite3.IntegrityError:
-            pass
-        db.commit()
-        db.close()
         
         if FCH1 not in data:
             data[FCH1] = {}
@@ -110,7 +102,16 @@ for ant in antlo_list:
         print("Sample delay", sample_delay)
 
         block = 10*np.log10(filfile.read_block(sample_delay, NSAMPS - sample_delay))
-        
+       
+        db = sqlite3.connect("obsdata.db")
+        cur = db.cursor()
+        try:
+            cur.execute(" INSERT INTO obsdata VALUES ('" + SCAN + "', " + str(CFREQ) + ", 0, NULL) ")
+        except sqlite3.IntegrityError:
+            pass
+        db.commit()
+        db.close()
+
         if REFERENCE_MEDIAN is not None:
             thismedian = np.median(block, axis = 1)
             diff = thismedian - REFERENCE_MEDIAN
@@ -177,6 +178,6 @@ for ant in antlo_list:
 
                 this_ts = downsample(this_ts, DOWNSAMPLE_FACTOR)
 
-                np.savetxt(obsdir + "datafile_FCEN_" + str(FCENTER) + "_EL_" + str(ELEV) + "_ANTLO_" + ant + ".txt", this_ts)
+                np.savetxt(obsdir + "datafile_FCEN_" + str(FCENTER) + "_EL_" + str(ELEV) + "_ANTLO_" + ant + ".txt", this_ts, fmt = '%.3f')
 
 

@@ -1,5 +1,8 @@
 import requests
 import time
+import sys
+
+CFREQ = sys.argv[1]
 
 with open("adminkeys.txt") as f:
     data = f.read()
@@ -7,10 +10,6 @@ with open("adminkeys.txt") as f:
     row = [el for el in spl if "SYSTEM_OBS" in el][0]
     key = row.split(",")[0]
 
-SCAN_FREQS = [1275, 1600, 4000]
-
-for freq in SCAN_FREQS:
-    requests.get("http://frb-node6.hcro.org:9000/addobs/" + key + "/" + str(freq))
-    time.sleep(1)
+requests.get("http://frb-node6.hcro.org:9000/addobs/" + key + "/" + CFREQ)
 
 

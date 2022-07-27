@@ -32,8 +32,8 @@ var NRDZ_FSTEP = 20
 app.use("/public", express.static(DIR + 'public'));
 app.use("/obs", express.static(DIR + 'obs'));
 app.use("/obs", serveIndex(DIR + 'obs'));
-
-process.env.TZ = "America/Los_Angeles"
+app.use("/followups", express.static(DIR + 'followups'));
+app.use("/followups", serveIndex(DIR + 'followups'));
 
 var obsdb = new sqlite3.Database(OBSDBNAME)
 var rfidb = new sqlite3.Database(RFIDBNAME)
@@ -268,11 +268,23 @@ app.get("/obslist/:flo/:fhi/:dstart/:dend", (req, res) => {
     })
 })
 
-app.get("/specoccdata/:freq/:bw", (req, res) => {
+app.get("/specoccdata/:freq/:bw/:dlo/:dhi", (req, res) => {
     var freq = req.params.freq
     var bw = req.params.bw
+    var dlo = req.params.dlo
+    var dhi = req.params.dhi
 
-    if (isNaN(freq) || isNaN(bw) || bw > 50){
+    if ((isNaN(dlo) || dlo == '') && dlo != "none"){
+        res.send("Invalid request")
+        return
+    }
+
+    if ((isNaN(dhi) || dhi == '') && dhi != "none"){
+        res.send("Invalid request")
+        return
+    }
+
+    if (isNaN(freq) || isNaN(bw)){
         res.send("Invalid request")
         return
     }
@@ -284,7 +296,16 @@ app.get("/specoccdata/:freq/:bw", (req, res) => {
     var fhi = freq + (bw / 2)
 
     query_command = "select start_az, end_az, elev from rfisources where cfreq >= " + flo + " and cfreq <= " + fhi
-    /*var run = rfidb.all(query_command, (err, rows) => {
+    
+    if (dhi != "none"){
+        query_command = query_command + " and replace(replace(obs,':',''),'-','') <= '" + dhi + "'"
+    }
+    if (dlo != "none"){
+        query_command = query_command + " and replace(replace(obs,':',''),'-','') >= '" + dlo + "'"
+    }
+    
+    console.log(query_command)
+    var run = rfidb.all(query_command, (err, rows) => {
         if (err){
             console.log(err)
         }
@@ -292,13 +313,26 @@ app.get("/specoccdata/:freq/:bw", (req, res) => {
             res.send("error")
             return
         }
-        var resp = ''
+        var resp_1 = ''
         for (var row of rows){
-            resp = resp + row["start_az"] + "," + row["end_az"] + "," + row["elev"] + "\n"
+            resp_1 = resp_1 + (Math.round(100 * (row["start_az"] + row["end_az"]) / 2) / 100) + "," + row["elev"] + "\n"
         }
-        res.send(resp)
-    })*/
-    var data = rfidb_sync.prepare(query_command).all()
+        
+        var obsflo = flo - 336
+        var obsfhi = fhi + 336
+
+        var run2 = obsdb.all("select distinct obs from obsdata where cfreq >= " + obsflo + " and cfreq <= " + obsfhi, (err, rows) => {
+            if (err){
+                console.log(err)
+            }
+            var n_obs = rows.length
+            res.send(n_obs + "|" + resp_1)
+        })
+
+    })
+
+
+    /*var data = rfidb_sync.prepare(query_command).all()
     var resp = ''
     for (var row of data){
         resp = resp + Math.round((row["start_az"] + row["end_az"]) / 2) + "," + row["elev"] + "\n"
@@ -309,7 +343,7 @@ app.get("/specoccdata/:freq/:bw", (req, res) => {
 
     var totalobs = obsdb_sync.prepare("select distinct obs from obsdata where cfreq >= " + obsflo + " and cfreq <= " + obsfhi).all()
     var n_obs = totalobs.length
-    res.send(n_obs + "|" + resp)
+    res.send(n_obs + "|" + resp)*/
 })
 
 app.get("/dev/:item", (req, res) => {
@@ -482,7 +516,7 @@ function correctQueryItem(item){
     return item
 }
 
-app.get("/querydev/:query", (req, res) => {
+app.get("/query/:query", (req, res) => {
     var query = req.params.query
     var query_spl = query.split("|")
 
@@ -523,6 +557,10 @@ app.get("/querydev/:query", (req, res) => {
             for (let i = 1; i < item.length; i++){
                 if (item[i] == "NOTNULL"){
                     alikes.push(item[0] + " IS NOT NULL ")
+                    continue
+                }
+                if (item[i] == ''){
+                    alikes.push(item[0] + " IS NOT NULL or " + item[0] + " IS NULL ")
                     continue
                 }
                 alikes.push(item[0] + " LIKE '%" + item[i] + "%'")
@@ -578,7 +616,7 @@ app.get("/querydev/:query", (req, res) => {
     })
 })
 
-app.get("/query/:query", (req, res) => {
+/*app.get("/query/:query", (req, res) => {
     var query = req.params.query
 
     //query should be formatted as such
@@ -674,7 +712,7 @@ app.get("/query/:query", (req, res) => {
         }
         res.send(data)
     })
-})
+})*/
 
 app.get("/addobs/:key/:cfreq", (req, res) => {
     var key = req.params.key

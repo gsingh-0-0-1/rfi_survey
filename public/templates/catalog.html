@@ -107,7 +107,7 @@
             padding: 1vh 1vh;
         }
 
-        #queryform tr:nth-child(2n){
+        #queryform tr:nth-child(2n + 1){
             border-bottom: 0.2vh solid white;
         }
 
@@ -572,6 +572,7 @@
     }
 
     function submitQuery(){
+        clearInterval(loadinginterval)
         autoCheck()
         showLoading()
         var ROWCOLOR = "#012"
@@ -647,7 +648,7 @@
         }*/
         var req = new XMLHttpRequest;
 
-        var query = "/querydev/" + fetch_items.join(",") + "|" + query_items.join(":")
+        var query = "/query/" + fetch_items.join(",") + "|" + query_items.join(":")
         
         query = query + "|"
         
@@ -753,16 +754,18 @@
         for (var param of params){
             let spl = param.split("=")
             let key = spl[0]
-            let val = spl[1]
-            if (isNaN(val)){
-                document.getElementById(key + "_lo").value = val
+            let lo = spl[1].split(",")[0]
+            let hi = spl[1].split(",")[1]
+            if (isNaN(hi)){
+                document.getElementById(key + "_lo").value = lo
             }
             else{
-                document.getElementById(key + "_lo").value = Math.round(100 * val * 0.9) / 100
-                document.getElementById(key + "_hi").value = Math.round(100 * val * 1.1) / 100
+                document.getElementById(key + "_lo").value = lo
+                document.getElementById(key + "_hi").value = hi
             }
         }
         selectAll()
+        named_only.checked = false
         submitQuery()
     }
 

@@ -66,5 +66,5 @@ for ant in ants:
 
         f.write(ephem + "," + match + "\n")
 
-f.close()
+    f.close()
 
