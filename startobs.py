@@ -10,7 +10,9 @@ import shutil
 
 OBS_ID = sys.argv[1]
 
-CFREQ = sys.argv[2]
+TYPE = sys.argv[2]
+
+PARAMS = sys.argv[3].split(",")
 
 def endObservation(o_id):
     req = requests.get("http://frb-node6.hcro.org:9000/endobs/" + str(o_id))
@@ -29,7 +31,18 @@ f.close()
 
 f = open(LOGNAME, "w")
 
-subprocess.call(["python", "multi_ant_scan.py", str(CFREQ)], stdout = f, stderr = f )
+command = ['python']
+
+if TYPE == "SCAN":
+    command += ['multi_ant_scan.py']
+if TYPE == "FOLLOWUP":
+    command += ['follow_up.py']
+
+command = command + PARAMS
+print(command)
+
+subprocess.call(command, stdout = f, stderr = f)
+#subprocess.call(["python", "multi_ant_scan.py", str(CFREQ)], stdout = f, stderr = f )
 
 f.close()
 

@@ -32,6 +32,10 @@
             font-family: Source Code Pro;
         }
 
+        .obs{
+            font-size: 3.5vh;
+        }
+
         a{
             color: inherit;
             text-decoration: none;
@@ -41,23 +45,61 @@
             font-weight: bold;
         }
 
-        .forminput{
+        input[type="text"].forminput, input[type="password"].forminput{
             background-color: #0000;
             border: none;
             border-bottom: 0.1vh solid white;
             font-family: Source Code Pro;
             color: white;
             font-size: 5vh;
-            width: 20%;
+            width: 17%;
+        }
+
+        button.forminput{
+            border: none;
+            font-family: Source Code Pro;
+            color: black;
+            font-size: 5vh;
+            padding: 1vh 1vh;
+            text-align: center;
+        }
+
+        #sel_SCAN{
+            background-color: #aaf;
+        }
+
+        #sel_FOLLOWUP{
+            background-color: #faa;
+        }
+
+        #sel_FLOWER{
+            background-color: #afa;
+        }
+
+        #sel_RASTER{
+            background-color: #ffa;
+        }
+
+        #options_SCAN{
+            display: none;
+        }
+
+        #options_FOLLOWUP{
+            display: none;
+        }
+
+        #options_FLOWER{
+            display: none;
+        }
+
+        #options_RASTER{
+            display: none;
         }
 
         .forminput:focus{
             outline: none;
         }
         
-        #cfreq{
-            width: 17%;
-        }
     </style>
 </head>
 <body>
@@ -65,15 +107,85 @@
         obs-user@obs_scheduler:/home$<span id="cursor">_</span>
     </div>
     <div class="urloption">
-        :: schedule obs > 
-        <input type='text' class='forminput' id='cfreq' placeholder='CFREQ (MHZ)'> >
-        <input type='password' class='forminput' id='authkey' placeholder='AUTH KEY'>
+        :: schedule obs >
+        <button class='forminput' onclick='javascript:showObsTypeOptions(this)' id='sel_SCAN'>Sky Scan</button> /
+        <button class='forminput' onclick='javascript:showObsTypeOptions(this)' id='sel_FOLLOWUP'>Follow-Up</button>
+        >
+        <input type='password' class='forminput' id='authkey' placeholder='AUTH KEY'> 
     </div>
+
+    <div class="urloption" id="options_SCAN">
+        <input type='text' class='forminput' id='SCAN_cfreq' placeholder='CFREQ (MHZ)'> >
+    </div>
+
+    <div class="urloption" id="options_FOLLOWUP">
+        <input type='text' class='forminput' id='FOLLOWUP_cfreq' placeholder='CFREQ (MHZ)'>
+        <input type='text' class='forminput' id='FOLLOWUP_az' placeholder='AZ (DEG)'>
+        <input type='text' class='forminput' id='FOLLOWUP_el' placeholder='EL (DEG)'>
+        >
+        <button class='forminput' onclick='javascript:showFollowUpTypeOptions(this)' id='sel_FLOWER'>Flower</button> /
+        <button class='forminput' onclick='javascript:showFollowUpTypeOptions(this)' id='sel_RASTER' >Raster</button>
+    </div>
+
+    <div class="urloption" id="options_FLOWER">
+        <input type='text' class='forminput' id='FLOWER_npetals' placeholder='# petals'>
+        <input type='text' class='forminput' id='FLOWER_degrad' placeholder='Rad. (deg)'>
+    </div>
+
+    <div class="urloption" id="options_RASTER">
+        <input type='text' class='forminput' id='RASTER_azrad' placeholder='±AZ (DEG)'>
+        <input type='text' class='forminput' id='RASTER_elrad' placeholder='±EL (DEG)'>
+        <input type='text' class='forminput' id='RASTER_interval' placeholder='GAP (DEG)'>
+    </div>
+
     <div class="urloption">
         :: current schedule:
     </div>
 </body>
 <script>
+    var OBS_MODES = ["SCAN", "FOLLOWUP"]
+    var FOLLOW_UP_MODES = ["FLOWER", "RASTER"]
+
+    var button_colors = {
+        "SCAN" : "#aaf",
+        "FOLLOWUP" : "#faa",
+        "FLOWER" : "#afa",
+        "RASTER" : "#ffa",
+    }
+
+    var SELECTED_MODE = ''
+    var SELECTED_SUBMODE = ''
+
+    function assignButtonColor(item){
+        document.getElementById("sel_" + item).style.backgroundColor = button_colors[item]
+    }
+
+    function dimButtonColor(item){
+        document.getElementById("sel_" + item).style.backgroundColor = "#888"
+    }
+
+    function showObsTypeOptions(obj){
+        var obstype = obj.id.replace("sel_", "")
+        for (var mode of OBS_MODES){
+            document.getElementById("options_" + mode).style.display = "none"
+            dimButtonColor(mode)
+        }
+        document.getElementById("options_" + obstype).style.display = "block"
+        assignButtonColor(obstype)
+        SELECTED_MODE = obstype
+    }
+
+    function showFollowUpTypeOptions(obj){
+        var subtype = obj.id.replace("sel_", "")
+        for (var submode of FOLLOW_UP_MODES){
+            document.getElementById("options_" + submode).style.display = "none"
+            dimButtonColor(submode)
+        }
+        document.getElementById("options_" + subtype).style.display = "block"
+        assignButtonColor(subtype)
+        SELECTED_SUBMODE = subtype
+    }
+
     function animateCursor(){
         if (cursor.textContent == ""){
             cursor.textContent = "_"
@@ -95,11 +207,35 @@
                 n = 1
                 for (var el of data){
                     var spl = el.split(",")
-                    var cfreq = spl[0]
-                    var name = spl[1]
+                    var name = spl[0]
+                    var type = spl[1]
+                    var params = spl.slice(2)
+                    
+                    var desc_string = '--' + n + " " 
+
+                    if (type == "SCAN"){
+                        desc_string = desc_string + "SCAN by " + name + " @ " + params[0] + " MHz"
+                    }
+
+                    if (type == "FOLLOWUP"){
+                        var subtype = params[1]
+                        desc_string = desc_string + subtype.toUpperCase() + " by " + name + " @ " + params[0] + " MHz"
+                        
+                        if (subtype.toLowerCase() == "flower"){
+                            desc_string = desc_string + " @ AZEL " + params[2] + " " + params[3]
+                            desc_string = desc_string + " " + params[4] + "P R" + params[5]
+                        }
+                        if (subtype.toLowerCase() == "raster"){
+                            desc_string = desc_string + " @ AZEL " + params[2] + "±" + params[4] + " " + params[3] + "±" + params[4] + " SPACING " + params[5]
+                        }
+                    }
+                    
+
                     var row = document.createElement('div')
                     row.classList.add("urloption")
-                    row.innerHTML = "--" + n + " Obs @ " + cfreq + " MHz by " + name
+                    row.classList.add("obs")
+                    row.innerHTML = desc_string
+                    
                     if (n == 1){
                         row.style.color = "#8e8"
                     }
@@ -111,8 +247,21 @@
     }
 
     function submitObsReq(){
+        if (SELECTED_MODE == ''){
+            return
+        }
         var req = new XMLHttpRequest;
-        req.open("GET", "/addobs/" + authkey.value + "/" + cfreq.value)
+        var request_string = "/addobs/" + authkey.value + "/" + SELECTED_MODE + "/"
+        
+        if (SELECTED_MODE == "SCAN"){
+            request_string = request_string + SCAN_cfreq.value
+        }
+        if (SELECTED_MODE == "FOLLOWUP"){
+            request_string = request_string + FOLLOWUP_cfreq.value + "," + SELECTED_SUBMODE + "," + FOLLOWUP_az.value + "," + FOLLOWUP_el.value + ","
+            request_string = request_string + RASTER_azrad.value + "," + RASTER_elrad.value + "," + RASTER_interval.value
+        }
+
+        req.open("GET", request_string)
         req.send()
         window.location.reload()
     }

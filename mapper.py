@@ -178,6 +178,6 @@ for ant in antlo_list:
 
                 this_ts = downsample(this_ts, DOWNSAMPLE_FACTOR)
 
-                np.savetxt(obsdir + "datafile_FCEN_" + str(FCENTER) + "_EL_" + str(ELEV) + "_ANTLO_" + ant + ".txt", this_ts, fmt = '%.3f')
+                np.savetxt(obsdir + "datafile_FCEN_" + str(FCENTER) + "_EL_" + str(ELEV) + "_ANTLO_" + ant + ".txt", this_ts, fmt = '%.2f')
 
 

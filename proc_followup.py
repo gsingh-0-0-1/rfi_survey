@@ -44,11 +44,12 @@ for ant in ANT_LIST:
     sample_delay = int(time_delay / tsamp)
 
     block = 10 * np.log10(f.read_block(sample_delay, NSAMPS - sample_delay))
+
     #get the center 25 MHz
     block = block[176 * 4:(1024 - 176) * 4]
     FTOP = f.header.fch1 - 176
 
-    splitnum = 16
+    splitnum = 128
     chans_per_split = int(block.shape[0] / splitnum)
     f_per_split = chans_per_split * abs(f.header.foff)
     for freq_n in range(splitnum):

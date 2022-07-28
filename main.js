@@ -115,8 +115,8 @@ function checkLegalVal(v){
     return true;
 }
 
-function writeObsId(i, f, n){
-    fs.writeFileSync(LATEST_ID_FNAME, i + "," + f + "," + n)
+function writeObsId(i, n, t, p){
+    fs.writeFileSync(LATEST_ID_FNAME, i + "," + n + "," + t + "," + p)
 }
 
 function writeQueue(data){
@@ -131,17 +131,18 @@ function writeObsEnded(){
     fs.writeFileSync(OBS_RUNNING_FNAME, "0")
 }
 
-function writeObsStarted(id, freq, name){
+function writeObsStarted(id, name, type, params){
     fs.writeFileSync(OBS_RUNNING_FNAME, "1")
-    writeObsId(id, freq, name)
+    writeObsId(id, name, type, params)
 }
 
 function readQueue(){
     return fs.readFileSync(QUEUE_FNAME, {encoding: 'utf-8', flag: 'r'})
 }
 
-function addToQueue(id, cfreq, name){
-    var newline = id + "," + cfreq + "," + name + "\n"
+function addToQueue(id, type, params, name){
+    var newline = id + "," + name + "," + type + "," + params + "\n"
+
     if (name == "SYSTEM_OBS"){
         fs.writeFileSync(QUEUE_FNAME, newline + readQueue())
     }
@@ -175,16 +176,20 @@ function checkAndStartObs(){
 
     var obsdata = queuedata[0]
     thisobsid = obsdata.split(",")[0]
-    thisobsfreq = obsdata.split(",")[1]
-    thisobsname = obsdata.split(",")[2]
-    queuedata.splice(0, 1)
-
+    thisobsname = obsdata.split(",")[1]
+    thisobstype = obsdata.split(",")[2]
+    thisobsparams = obsdata.split(",").slice(3)
+    console.log(thisobsid, thisobsname, thisobstype, thisobsparams)
+    queuedata = queuedata.slice(1)
+    
     writeQueue(queuedata)
-    writeObsStarted(thisobsid, thisobsfreq, thisobsname)
 
     console.log("starting obs " + thisobsid)
-    proc = child_process.exec("python startobs.py " + String(thisobsid) + " " + thisobsfreq, {detached: true}, (error, stdout, stderr) => {
-        if (error) {
+
+    writeObsStarted(thisobsid, thisobsname, thisobstype, thisobsparams)
+
+    proc = child_process.exec("python startobs.py " + String(thisobsid) + " " + thisobstype + " " + thisobsparams, {detached: true}, (error, stdout, stderr) => {
+          if (error) {
             fs.appendFileSync("errlog.txt", error.message)
             console.error(`error: ${error.message}`);
             return;
@@ -207,6 +212,34 @@ function nrdzToUnix(dstring){
     var d = Date.parse(dstring)
     return d
 }
+
+/*
+app.use((req, res, next) => {
+    var url = req.url
+    while (url.includes("//")){
+        url = url.replace("//", "/")
+    }
+    if (url[url.length - 1] == '/' && url != "/"){
+        url = url.slice(0, -1)
+        console.log(url)
+        res.redirect(301, url)
+    }
+    else{
+        next()
+    }
+})
+*/
+
+app.use((req, res, next) => {
+    if (req.path.substr(-1) === '/' && req.path.length > 1) {
+        const query = req.url.slice(req.path.length)
+        const safepath = req.path.slice(0, -1).replace(/\/+/g, '/')
+        res.redirect(301, safepath + query)
+    }
+    else{
+        next()
+    }
+})
 
 app.get("/obslist/:flo/:fhi/:dstart/:dend", (req, res) => {
     var flo = req.params.flo
@@ -616,105 +649,7 @@ app.get("/query/:query", (req, res) => {
     })
 })
 
-/*app.get("/query/:query", (req, res) => {
-    var query = req.params.query
-
-    //query should be formatted as such
-    //key,operator,value:key,operator,value ... |sortkey,asc/desc|limitnum
-    while (query.includes("<div>")){
-        query = query.replace("<div>", "/")
-    }
-
-    var query = query.split("|")
-
-    var searchparams = query[0].split(":")
-    for (var i = 0; i < searchparams.length; i++){
-        searchparams[i] = searchparams[i].split(",")
-    }
-
-    var sortparams = query[1].split(",")
-    var limitnum = query[2]
-
-    var legal = true;
-
-    for (var param of searchparams){
-        if (param.length != 3){
-            legal = false;
-        }
-        var key = param[0]
-        var op = param[1]
-        var val = param[2]
-        if (!checkLegalKey(key) || !checkLegalOp(op) || !checkLegalVal(val)){
-            legal = false;
-        }
-    }
-
-    //we should be sorting by a legal key
-    if (!checkLegalKey(sortparams[0])){
-        legal = false;
-    }
-
-    //sort setting can either be ASC or DESC
-    if (sortparams[1] != "ASC" && sortparams[1] != "DESC"){
-        legal = false;
-    }
-
-    if (isNaN(limitnum)){
-        legal = false;
-    }
-
-    if (!legal && query[0] != ""){
-        res.send("Illegal query.")
-        return
-    }
-
-    var query_command = "SELECT * FROM rfisources"
-
-    //now we know that the searchparams are legal - we can refer back to it and
-    //add it to the query
-    for (var i = 0; i < searchparams.length; i++){
-        searchparams[i] = searchparams[i].join(" ")
-    }
-
-    var searchparams = searchparams.join(" and ")
-    
-    while (searchparams.includes("<cm>")){
-        searchparams = searchparams.replace("<cm>", ",")
-    }
-    
-    while (searchparams.includes("<cl>")){
-        searchparams = searchparams.replace("<cl>", ":")
-    }
-
-
-    if (searchparams != ""){
-        searchparams = " WHERE " + searchparams
-    }
-
-    query_command = query_command + " " + searchparams
-    query_command = query_command + " ORDER BY " + sortparams[0] + " " + sortparams[1]
-    query_command = query_command + " LIMIT " + limitnum
-
-    var run = rfidb.all(query_command, (err, rows) => {
-        if (err){
-            console.log(err)
-        }
-        if (rows == undefined){
-            res.send("Query error")
-            return
-        }
-        var data = ''
-        for (var row of rows){
-            for (var key of Object.keys(row)){
-                data = data + row[key] + ", "
-            }
-            data = data + "\n"
-        }
-        res.send(data)
-    })
-})*/
-
-app.get("/addobs/:key/:cfreq", (req, res) => {
+app.get("/addobs/:key/:type/:params", (req, res) => {
     var key = req.params.key
     if (ADMIN_KEYS.includes(key)){
     }
@@ -723,18 +658,14 @@ app.get("/addobs/:key/:cfreq", (req, res) => {
         return
     }
 
-    var cfreq = req.params.cfreq
+    var type = req.params.type
+    var params = req.params.params
 
-    if (isNaN(cfreq)){
-        res.send("fail")
-        return
-    }
-    
     var thisobsid = Date.now()
 
     var name = ADMIN_NAMES[ADMIN_KEYS.indexOf(key)]
 
-    addToQueue(thisobsid, cfreq, name)
+    addToQueue(thisobsid, type, params, name)
 
     checkAndStartObs()
     res.send("OK")
@@ -760,13 +691,11 @@ app.get("/obsqueue", (req, res) => {
     var respdata = ''
     if (isObsRunning()){
         var data = fetchCurrentObsData().split(",")
-        respdata = respdata + data[1] + "," + data[2] + "\n"
+        respdata = respdata + data.slice(1).join(",") + "\n"
     }
     for (var el of queuedata){
         var spl = el.split(",")
-        var freq = spl[1]
-        var name = spl[2]
-        respdata = respdata + freq + "," + name + "\n"
+        respdata = respdata + spl.slice(1).join(",") + "\n"
     }
     res.send(respdata)
 })

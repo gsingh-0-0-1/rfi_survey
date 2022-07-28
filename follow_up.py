@@ -54,7 +54,7 @@ SCANTYPE = sys.argv[2]
 center_az = float(sys.argv[3])
 center_el = float(sys.argv[4])
 
-if SCANTYPE == 'flower':
+if SCANTYPE.lower() == 'flower':
     n_petals = int(sys.argv[5])
     theta_max = 2 * np.pi
 
@@ -66,7 +66,7 @@ if SCANTYPE == 'flower':
     k = int(n_petals / 2)
 
     ephem = ephemgen.flower_petal(center_az, center_el, n_petals, PATTERN_RADIUS)
-elif SCANTYPE == 'raster':
+elif SCANTYPE.lower() == 'raster':
     az_radius = float(sys.argv[5])
     el_radius = float(sys.argv[6])
     interval = float(sys.argv[7])
@@ -85,6 +85,9 @@ os.mkdir(SAVEDIR + THIS_SCAN_TIME)
 os.mkdir(SAVEDIR + THIS_SCAN_TIME + "/ephems/")
 
 logger = logger_defaults.getProgramLogger("observe", loglevel=logging.INFO)
+
+with open(SAVEDIR + THIS_SCAN_TIME + "/specs.txt", "w") as f:
+    f.write(",".join(sys.argv))
 
 ofile = open(SAVEDIR + THIS_SCAN_TIME + "/obsinfo.txt", "w")
 for ant in antlo_list:
