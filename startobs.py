@@ -41,8 +41,8 @@ if TYPE == "FOLLOWUP":
 command = command + PARAMS
 print(command)
 
+#time.sleep(5)
 subprocess.call(command, stdout = f, stderr = f)
-#subprocess.call(["python", "multi_ant_scan.py", str(CFREQ)], stdout = f, stderr = f )
 
 f.close()
 

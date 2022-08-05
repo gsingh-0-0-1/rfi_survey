@@ -68,3 +68,26 @@ def raster_scan(center_az, center_el, az_radius, el_radius, interval = 0.2, invr
 
     return ephem
 
+def linescan(xstart, ystart, xend, yend):
+    xdiff = xend - xstart
+    ydiff = yend - ystart
+    length = (xdiff ** 2 + ydiff ** 2) ** (1 / 2)
+
+    x = lambda t : xstart + (t * xdiff)
+    y = lambda t : ystart + (t * ydiff)
+
+    npoints = 100
+
+    points = np.array([[x(t), y(t)] for t in np.arange(0, 1 + 1 / npoints, 1 / npoints)])
+
+    times = np.array([t for t in np.arange(0, length + (1 / npoints), length / npoints)])
+
+    ephem = np.zeros((len(points), 4))
+    
+    ephem[:, 0] = times
+    ephem[:, 1] = points[:, 0]
+    ephem[:, 2] = points[:, 1]
+    ephem[:, 3] = 2.55e-5
+
+    return ephem
+    

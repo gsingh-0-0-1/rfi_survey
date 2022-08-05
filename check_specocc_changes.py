@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 
 CLUSTER_PREC = 1
+EPSILON_1 = 0.1
+EPSILON_2 = 0.1
 
 def processData(response_data):
     '''
@@ -32,7 +34,6 @@ def processData(response_data):
             clustered_data[key] = 1 
 
     array_data = np.zeros((int(360 / CLUSTER_PREC), int(90 / CLUSTER_PREC)))
-
     for key in clustered_data:
         clustered_data[key] = min(1.0, round(clustered_data[key] / N_OBS, 4))
         coords = [int(el) for el in key.split(",")]
@@ -60,7 +61,7 @@ def runSearch(CFREQ, BW):
     This function queries spectral occupancy data for the recent and benchmark periods.
     '''
 
-    REC_DAYS = 3
+    REC_DAYS = 7
     BEN_DAYS = 7
 
     #datetimes for the "recent" period
@@ -86,7 +87,21 @@ def runSearch(CFREQ, BW):
     DIFF = REC_DATA - BEN_DATA
     DIFF[np.where(DIFF < 0)] = 0
 
-    colormap = cm.seismic
+    BENCHMARK_CROWDEDNESS = np.mean(BEN_DATA)
+
+    DIFF_FLAGS = np.where(DIFF > EPSILON_1)
+    DIFF_FLAGS = np.concatenate((DIFF_FLAGS[0][:, np.newaxis], DIFF_FLAGS[1][:, np.newaxis]), axis = 1)
+
+    CROWD_FLAGS = np.where(REC_DATA > EPSILON_2)
+    CROWD_FLAGS = np.concatenate((CROWD_FLAGS[0][:, np.newaxis], CROWD_FLAGS[1][:, np.newaxis]), axis = 1)
+
+    FLAGS = [el for el in DIFF_FLAGS if el in CROWD_FLAGS]
+
+    FLAGS = [[el[0] / CLUSTER_PREC, el[1] / CLUSTER_PREC] for el in FLAGS]
+
+    print(FLAGS)
+
+    colormap = cm.viridis
 
     plt.subplot(1, 3, 1)
     plt.title("Recent Data")
@@ -107,8 +122,7 @@ def runSearch(CFREQ, BW):
 
 
 
-
 if __name__ == "__main__":
-    CLUSTER_PREC = round(3500 / float(sys.argv[3]), 2)
+    CLUSTER_PREC = round(3500 / float(sys.argv[1]), 2)
     runSearch((sys.argv[1]), (sys.argv[2]))
 

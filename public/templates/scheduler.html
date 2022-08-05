@@ -119,6 +119,8 @@
     </div>
 
     <div class="urloption" id="options_FOLLOWUP">
+        <input type='text' class='forminput' id='FOLLOWUP_source' placeholder='TARGET'>
+        <br><br>
         <input type='text' class='forminput' id='FOLLOWUP_cfreq' placeholder='CFREQ (MHZ)'>
         <input type='text' class='forminput' id='FOLLOWUP_az' placeholder='AZ (DEG)'>
         <input type='text' class='forminput' id='FOLLOWUP_el' placeholder='EL (DEG)'>
@@ -226,10 +228,12 @@
                             desc_string = desc_string + " " + params[4] + "P R" + params[5]
                         }
                         if (subtype.toLowerCase() == "raster"){
-                            desc_string = desc_string + " @ AZEL " + params[2] + "±" + params[4] + " " + params[3] + "±" + params[4] + " SPACING " + params[5]
+                            desc_string = desc_string + " @ AZEL " + params[2] + "±" + params[4] + " " + params[3] + "±" + params[5] + " SPACING " + params[6]
                         }
+                        desc_string = desc_string + " TARGET " + params[params.length - 1]
+                        
                     }
-                    
+
 
                     var row = document.createElement('div')
                     row.classList.add("urloption")
@@ -258,7 +262,14 @@
         }
         if (SELECTED_MODE == "FOLLOWUP"){
             request_string = request_string + FOLLOWUP_cfreq.value + "," + SELECTED_SUBMODE + "," + FOLLOWUP_az.value + "," + FOLLOWUP_el.value + ","
-            request_string = request_string + RASTER_azrad.value + "," + RASTER_elrad.value + "," + RASTER_interval.value
+            if (SELECTED_SUBMODE == "RASTER"){
+                request_string = request_string + RASTER_azrad.value + "," + RASTER_elrad.value + "," + RASTER_interval.value
+        
+            }
+            if (SELECTED_SUBMODE == "FLOWER"){
+                request_string = request_string + FLOWER_npetals.value + "," + FLOWER_degrad.value
+            }
+            request_string = request_string + "," + FOLLOWUP_source.value
         }
 
         req.open("GET", request_string)

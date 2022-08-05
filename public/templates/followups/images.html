@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300&display=swap" rel="stylesheet">
+    <title></title>
+    <style>
+        body{
+            background-color: #123;
+        }
+
+        #titletext{
+            margin-top: 1%;
+            position: relative;
+            left: 2%;
+            font-size: 5vh;
+            color: #eee;
+            font-family: Source Code Pro;
+            display: block;
+        }
+
+        #cursor{
+            color: #6f6;
+        }
+
+        .scanimg{
+            position: relative;
+            display: inline-block;
+            margin-top: 7%;
+            margin-left: 5%;
+            margin-right: 5%;
+            font-family: Source Code Pro, Courier;
+            border: none;
+            width: 40%;
+            text-align: center;
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="titletext"><span id="cursor">_</span>
+    </div>	
+</body>
+<script>
+    var spl = window.location.pathname.split("/").filter(el => el != "")
+    
+    var OBS = spl[spl.length - 1] 
+    document.title = "Follow-Up @ " + OBS
+
+    titletext.innerHTML = "Follow-Up @ " + OBS + titletext.innerHTML
+
+    function fetchImages(l){
+        for (var freq of l){
+            var url = "/followupdata/" + OBS + "/FCEN_" + freq + ".png"
+            var img = document.createElement("img")
+            img.src = url
+            img.classList.add("scanimg")
+            img.id = freq
+            document.body.appendChild(img)
+        }
+        setTimeout(function(){
+            if (window.location.href.split("#").length != 1){
+                document.getElementById(window.location.href.split("#")[1]).scrollIntoView()
+            }
+        }, 1000)
+    }
+
+    var req = new XMLHttpRequest;
+    req.open("GET", "/followupdata/" + OBS + "/freqs.txt")
+    req.send()
+    req.onreadystatechange = function(){
+        if (this.readyState == 4 && this.status == 200){
+            var l = this.responseText.split(",").filter(el => el != "")
+            fetchImages(l)
+        }
+    }
+
+    function animateCursor(){
+        if (cursor.innerHTML == "&nbsp;"){
+            cursor.textContent = "_"
+            return
+        }
+        if (cursor.textContent == "_"){
+            cursor.innerHTML = "&nbsp;"
+            return
+        }
+    }
+
+    setInterval(animateCursor, 600)
+
+</script>
+</html>

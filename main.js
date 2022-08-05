@@ -21,6 +21,8 @@ const serveIndex = require('serve-index');
 
 var OBSDBNAME = "obsdata.db"
 var RFIDBNAME = "rfisources.db"
+var FOLDBNAME = "followups.db"
+
 var DIR = '/home/obsuser/gsingh/rfi_survey/'
 var OBSDIR = DIR + "obs/"
 
@@ -32,11 +34,12 @@ var NRDZ_FSTEP = 20
 app.use("/public", express.static(DIR + 'public'));
 app.use("/obs", express.static(DIR + 'obs'));
 app.use("/obs", serveIndex(DIR + 'obs'));
-app.use("/followups", express.static(DIR + 'followups'));
-app.use("/followups", serveIndex(DIR + 'followups'));
+app.use("/followupdata", express.static(DIR + 'followups'));
+app.use("/followupdata", serveIndex(DIR + 'followups'));
 
 var obsdb = new sqlite3.Database(OBSDBNAME)
 var rfidb = new sqlite3.Database(RFIDBNAME)
+var foldb = new sqlite3.Database(FOLDBNAME)
 var rfidb_sync = new sqlite3_sync(RFIDBNAME)
 var obsdb_sync = new sqlite3_sync(OBSDBNAME)
 
@@ -179,16 +182,16 @@ function checkAndStartObs(){
     thisobsname = obsdata.split(",")[1]
     thisobstype = obsdata.split(",")[2]
     thisobsparams = obsdata.split(",").slice(3)
-    console.log(thisobsid, thisobsname, thisobstype, thisobsparams)
+    thisobsparams = thisobsparams.join(",")
     queuedata = queuedata.slice(1)
     
     writeQueue(queuedata)
 
-    console.log("starting obs " + thisobsid)
-
     writeObsStarted(thisobsid, thisobsname, thisobstype, thisobsparams)
 
-    proc = child_process.exec("python startobs.py " + String(thisobsid) + " " + thisobstype + " " + thisobsparams, {detached: true}, (error, stdout, stderr) => {
+    var cmd = "python startobs.py " + String(thisobsid) + " " + thisobstype + " " + thisobsparams + "," + thisobsname
+    console.log(cmd)
+    proc = child_process.exec(cmd, {detached: true}, (error, stdout, stderr) => {
           if (error) {
             fs.appendFileSync("errlog.txt", error.message)
             console.error(`error: ${error.message}`);
@@ -413,6 +416,26 @@ app.get("/scanobs/:obs/files", (req, res) => {
 
 app.get("/scanobs/:obs/:option/", (req, res) => {
     res.sendFile("public/templates/" + req.params.option + ".html", {root: __dirname})
+})
+
+app.get("/followups", (req, res) => {
+    res.sendFile("public/templates/followups/portal.html", {root: __dirname}) 
+})
+
+app.get("/followups/:datetime", (req, res) => {
+    res.sendFile("public/templates/followups/images.html", {root: __dirname})
+})
+
+app.get("/followuplist", (req, res) => {
+    var run = foldb.all("select * from followups limit 100", (err, rows) => {
+        if (err){
+            console.log(err)
+        }
+        if (rows == undefined){
+            return
+        }
+        res.send(JSON.stringify(rows))
+    }) 
 })
 
 app.get("/nrdzscanlist/:dlo/:dhi", (req, res) => {

@@ -1,6 +1,6 @@
 #!/home/obsuser/miniconda3/envs/ATAobs/bin/python
 
-
+import ATATools
 from ATATools import ata_control, logger_defaults, ata_ephem
 import atexit
 from SNAPobs import snap_dada, snap_if, snap_config
@@ -15,8 +15,7 @@ import logging
 import os
 import shutil
 import subprocess
-import matplotlib.pyplot as plt
-import matplotlib
+import sqlite3
 
 from utils import ephemgen
 
@@ -47,12 +46,15 @@ N_ANTS = len(ant_list)
 lo = 'A'
 antlo_list = [ant + lo for ant in ant_list]
 
+paramstring = ','.join(sys.argv[1:-2])
 
 freq_list = [float(sys.argv[1])]
 
 SCANTYPE = sys.argv[2]
-center_az = float(sys.argv[3])
-center_el = float(sys.argv[4])
+
+if SCANTYPE.lower() == 'flower' or SCANTYPE.lower() == 'raster':
+    center_az = float(sys.argv[3])
+    center_el = float(sys.argv[4])
 
 if SCANTYPE.lower() == 'flower':
     n_petals = int(sys.argv[5])
@@ -62,6 +64,7 @@ if SCANTYPE.lower() == 'flower':
 
     PATTERN_RADIUS = float(sys.argv[6])#max(ANT_FOV, 1)
 
+    n_petals = int(4 * (round(n_petals / 4) + 1))
     assert n_petals % 4 == 0
     k = int(n_petals / 2)
 
@@ -71,6 +74,17 @@ elif SCANTYPE.lower() == 'raster':
     el_radius = float(sys.argv[6])
     interval = float(sys.argv[7])
     ephem = ephemgen.raster_scan(center_az, center_el, az_radius, el_radius, interval = interval)
+elif SCANTYPE.lower() == 'line':
+    start_az = float(sys.argv[3])
+    start_el = float(sys.argv[4])
+    end_az = float(sys.argv[5])
+    end_el = float(sys.argv[6])
+    center_az = start_az
+    center_el = start_el
+    ephem = ephemgen.linescan(start_az, start_el, end_az, end_el)
+
+OBSERVER_NAME = sys.argv[-2]
+INTENDED_TARGET = sys.argv[-1]
 
 
 SAVEDIR = "./followups/"
@@ -166,6 +180,12 @@ for freq in freq_list:
 
     count += 1
 tt = time.time()
+
+db = sqlite3.connect("followups.db")
+cur = db.cursor()
+cur.execute("insert into followups (datetime, name, params, source) values ('" + THIS_SCAN_TIME + "', '" + OBSERVER_NAME + "', '" + paramstring + "', '" + INTENDED_TARGET +"')")
+db.commit()
+db.close()
 
 time.sleep(10)
 print(tt-t)

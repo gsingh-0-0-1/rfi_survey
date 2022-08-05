@@ -19,6 +19,8 @@ THIS_SCAN_DATA_DIR = DATADIR + THIS_SCAN + "/"
 with open(THIS_SCAN_DIR + "obsinfo.txt", "r") as f:
     ANT_LIST = [el for el in f.read().split(",") if el != "" and el != "\n"]
 
+flist = ''
+
 for ant in ANT_LIST:
     l = [el for el in os.listdir(THIS_SCAN_DIR + "ephems/" + ant + "/") if ".txt" in el]
     ephem = np.loadtxt(THIS_SCAN_DIR + "ephems/" + ant + "/" + l[0])
@@ -52,6 +54,15 @@ for ant in ANT_LIST:
     splitnum = 128
     chans_per_split = int(block.shape[0] / splitnum)
     f_per_split = chans_per_split * abs(f.header.foff)
+
+    for freq_n in range(splitnum):
+        this_ftop = FTOP - (freq_n * f_per_split)
+        this_fcen = this_ftop - (f_per_split / 2)
+        flist += str(this_fcen) + ","
+
+        with open(THIS_SCAN_DIR + "freqs.txt", "w") as f:
+            f.write(flist)
+
     for freq_n in range(splitnum):
         this_ftop = FTOP - (freq_n * f_per_split)
         this_fcen = this_ftop - (f_per_split / 2)
@@ -88,8 +99,10 @@ for ant in ANT_LIST:
             az_diff = ephem[ind + 1, 1] - ephem[ind, 1]
             el_diff = ephem[ind + 1, 2] - ephem[ind, 2]
 
+            #for sample_ind in range(1):
             for sample_ind in range(this_nsamps):
                 sub_block = freq_block[:, sample_start + sample_ind:sample_start + sample_ind + 1]
+                #sub_block = freq_block[:, sample_start : sample_end]
                 power = np.mean(sub_block)
                 
                 az_coord = int(100 * round(ephem[ind, 1] + (az_diff * sample_ind / this_nsamps) - center_az, 2)) + IMG_AZ_CENTER
@@ -110,5 +123,7 @@ for ant in ANT_LIST:
         plt.xlabel("Azimuth (deg)")
         plt.ylabel("Elevation (deg)")
         plt.colorbar()
-        plt.savefig(THIS_SCAN_DIR + "FCEN_" + str(this_fcen) + "_BW_" + str(f_per_split) + ".png") 
+        plt.savefig(THIS_SCAN_DIR + "FCEN_" + str(this_fcen) + ".png") 
         plt.clf()
+
+
