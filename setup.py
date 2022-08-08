@@ -13,3 +13,4 @@ for f in files_to_write:
 os.system('npm install express')
 os.system('npm install sqlite3')
 os.system('npm install better-sqlite3')
+os.system('npm install socket.io')
