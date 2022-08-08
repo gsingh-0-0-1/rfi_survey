@@ -7,8 +7,9 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 
 CLUSTER_PREC = 1
-EPSILON_1 = 0.1
+EPSILON_1 = 0.0
 EPSILON_2 = 0.1
+EPSILON_3 = 0.1
 
 def processData(response_data):
     '''
@@ -61,7 +62,7 @@ def runSearch(CFREQ, BW):
     This function queries spectral occupancy data for the recent and benchmark periods.
     '''
 
-    REC_DAYS = 7
+    REC_DAYS = 1
     BEN_DAYS = 7
 
     #datetimes for the "recent" period
@@ -87,15 +88,19 @@ def runSearch(CFREQ, BW):
     DIFF = REC_DATA - BEN_DATA
     DIFF[np.where(DIFF < 0)] = 0
 
-    BENCHMARK_CROWDEDNESS = np.mean(BEN_DATA)
+    BENCHMARK_CROWDEDNESS = np.mean(BEN_DATA[np.where(BEN_DATA > EPSILON_1)])#np.mean(BEN_DATA)
 
-    DIFF_FLAGS = np.where(DIFF > EPSILON_1)
+    DIFF_FLAGS = np.where(DIFF > EPSILON_2)
     DIFF_FLAGS = np.concatenate((DIFF_FLAGS[0][:, np.newaxis], DIFF_FLAGS[1][:, np.newaxis]), axis = 1)
 
-    CROWD_FLAGS = np.where(REC_DATA > EPSILON_2)
+    CROWD_FLAGS = np.where(REC_DATA > EPSILON_3 + BENCHMARK_CROWDEDNESS)
     CROWD_FLAGS = np.concatenate((CROWD_FLAGS[0][:, np.newaxis], CROWD_FLAGS[1][:, np.newaxis]), axis = 1)
 
     FLAGS = [el for el in DIFF_FLAGS if el in CROWD_FLAGS]
+
+    print("BENCHMARK CROWDEDNESS", BENCHMARK_CROWDEDNESS)
+
+    print(FLAGS)
 
     FLAGS = [[el[0] / CLUSTER_PREC, el[1] / CLUSTER_PREC] for el in FLAGS]
 
@@ -119,7 +124,6 @@ def runSearch(CFREQ, BW):
     plt.colorbar()
 
     plt.show()
-
 
 
 if __name__ == "__main__":
