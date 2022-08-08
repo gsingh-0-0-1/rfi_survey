@@ -450,6 +450,7 @@
 
     <input type="button" class='formbutton' value='ENTER to Search'>
     <input type="button" class='formbutton' value='SHIFT+S to Select All'>
+    <input type="button" class='formbutton' value='SHIFT+ENTER to Raw Query' id='rawq'>
 
     <div id="loading">
     </div>
@@ -571,10 +572,9 @@
         clearInterval(loadinginterval)           
     }
 
-    function submitQuery(){
+    function submitQuery(raw = false){
         clearInterval(loadinginterval)
         autoCheck()
-        showLoading()
         var ROWCOLOR = "#012"
 
         var fetch_items = []
@@ -660,6 +660,10 @@
 
         console.log(query) 
 
+        if (raw){
+            window.open(query, "_blank")
+        }
+
         req.open("GET", query)
         req.send()
         req.onreadystatechange = function(){
@@ -734,11 +738,14 @@
     }
 
     document.onkeydown = function(e){
-        if (e.code == "Enter"){
+        if (e.code == "Enter" && !e.shiftKey){
             submitQuery()
         }
         if (e.shiftKey && e.code == "KeyS"){
             selectAll()
+        }
+        if (e.code == "Enter" && e.shiftKey){
+            submitQuery(true)
         }
     }
 

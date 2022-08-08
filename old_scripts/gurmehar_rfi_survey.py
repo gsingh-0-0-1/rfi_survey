@@ -1,12 +1,6 @@
 #!/home/obsuser/miniconda3/envs/ATAobs/bin/python
 
 
-#######################
-# This example script shows how to set up an observation using the
-# SNAP boards with a swivel across azimuth.
-# Trying antenna reservation, tuning, movement, data recording
-# for new feed antennas.
-#######################
 
 import ATATools
 from ATATools import ata_control, logger_defaults, ata_ephem
