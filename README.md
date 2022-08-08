@@ -1,7 +1,7 @@
 # ATA RFI Database
 
 ## Setup
-This section is here for documentation; this is all set up already on the ATA computers (@ http://frb-node6.hcro.org:9000), and so if you are looking for information on how to use the database and website, skip to the [Usage](/#Usage) section.
+This section is here for documentation; this is all set up already on the ATA computers (@ http://frb-node6.hcro.org:9000), and so if you are looking for information on how to use the database and website, skip to the [Usage](#usage) section.
 ### Server
 Begin by running the `setup.py` script. Then, run `node main.js` to start the database server. The server assumes a given directory structure that is present on the ATA computers for observational data.
 
