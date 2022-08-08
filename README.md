@@ -46,3 +46,7 @@ Raster scans create images by generating an ephemeris file from a center azimuth
 Flower scans differ in that they provide a better view of the central region. This can be especially useful for studying the radial extent of geostationary sources and satellites, since they will not move much over the time of the scan, unlike astronomical sources (especially those near the equator). Instead of azimuthal and elevation extent and the spacing gap, flower scans take in a number of petals (which will be rounded to the nearest multiple of 4) and a radial extent.
 
 ### Spectral Occupancy
+Spectral occupancy is a metric that lets us estimate how often a specific set of frequencies are active at a certain location. The spectral occupancy map provides a user interface to visualize spectral occupancy and query the RFI catalog at the selected locations and frequencies. Changes in spectral occupancy are what will guide the automatic follow-up observations that will be conducted. The completion of this functionality will fully eliminate the human need to manually search for sources of interference at the ATA, and relegate the extent of human involvement to the inspection of follow-up observations to ensure that the observed sources are either transient or avoidable.
+
+### NRDZ Scan Data
+The National Radio Dynamic Zone has various sensors around Hat Creek Radio Observatory (HCRO) which scan through a number of frequencies in a periodic fashion. Images are generated from these data, and those images can be seen in the NRDZ Scan Observation Portal.
